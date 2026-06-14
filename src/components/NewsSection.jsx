@@ -73,30 +73,33 @@ function FeaturedCard({ article, lang, t, visible }) {
           opacity: visible ? 1 : 0,
           transform: visible ? (hovered ? 'translateY(-6px)' : 'translateY(0)') : 'translateY(32px)',
           transition: 'opacity 0.65s ease, transform 0.5s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.25s ease',
-          display: 'flex',
-          flexDirection: 'row',
+          display: 'grid',
+          gridTemplateColumns: '42% 1fr',
           minHeight: '300px',
           height: '100%',
           cursor: 'pointer',
         }}
       >
-        {/* Image side */}
+        {/* Image side — uses grid cell height so absolute fill is reliable */}
         <div style={{
-          width: '42%', flexShrink: 0, position: 'relative', overflow: 'hidden',
+          position: 'relative', overflow: 'hidden',
           background: 'linear-gradient(135deg, rgba(16,185,129,0.07), rgba(16,185,129,0.14))',
         }}>
           {coverImage ? (
             <img
               src={coverImage} alt={article.title}
               style={{
-                width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+                position: 'absolute', inset: 0,
+                width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'center top',
+                display: 'block',
                 transform: hovered ? 'scale(1.05)' : 'scale(1)',
                 transition: 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)',
               }}
             />
           ) : (
             <div style={{
-              width: '100%', height: '100%',
+              position: 'absolute', inset: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <Newspaper size={56} color="rgba(16,185,129,0.32)" strokeWidth={1.1} />
@@ -113,7 +116,7 @@ function FeaturedCard({ article, lang, t, visible }) {
 
         {/* Content side */}
         <div style={{
-          flex: 1, padding: '28px 28px 24px',
+          padding: '28px 28px 24px',
           display: 'flex', flexDirection: 'column', gap: '11px', minWidth: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>

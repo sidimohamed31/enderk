@@ -127,10 +127,14 @@ export default function NewsDetail({ t, lang }) {
 
       {/* ── Hero ── */}
       {coverImage ? (
-        <div style={{ position: 'relative', height: 'clamp(320px, 55vh, 560px)', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', height: 'clamp(380px, 65vh, 720px)', overflow: 'hidden' }}>
           <img
             src={coverImage} alt={article.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            style={{
+              width: '100%', height: '100%',
+              objectFit: 'cover', objectPosition: 'center top',
+              display: 'block',
+            }}
           />
           {/* Dark gradient bottom-up */}
           <div style={{
