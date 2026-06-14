@@ -536,3 +536,49 @@ def update_volunteer_status(
 def delete_volunteer(db: Session, application: models.VolunteerApplication) -> None:
     db.delete(application)
     db.commit()
+
+
+# ── Background translation tasks ──────────────────────────────────────────────
+
+def _bg_translate_project(session_factory, project_id: str) -> None:
+    from .translation import translate_text
+    db = session_factory()
+    try:
+        proj = db.query(models.Project).filter(models.Project.id == project_id).first()
+        if not proj:
+            return
+        proj.title_fr = translate_text(proj.title, "fr")
+        proj.title_en = translate_text(proj.title, "en")
+        proj.description_fr = translate_text(proj.description, "fr")
+        proj.description_en = translate_text(proj.description, "en")
+        proj.impact_fr = translate_text(proj.impact, "fr")
+        proj.impact_en = translate_text(proj.impact, "en")
+        proj.category_fr = translate_text(proj.category, "fr")
+        proj.category_en = translate_text(proj.category, "en")
+        db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.close()
+
+
+def _bg_translate_news(session_factory, article_id: str) -> None:
+    from .translation import translate_text
+    db = session_factory()
+    try:
+        art = db.query(models.NewsArticle).filter(models.NewsArticle.id == article_id).first()
+        if not art:
+            return
+        art.title_fr = translate_text(art.title, "fr")
+        art.title_en = translate_text(art.title, "en")
+        art.excerpt_fr = translate_text(art.excerpt, "fr")
+        art.excerpt_en = translate_text(art.excerpt, "en")
+        art.body_fr = translate_text(art.body, "fr")
+        art.body_en = translate_text(art.body, "en")
+        art.category_fr = translate_text(art.category, "fr")
+        art.category_en = translate_text(art.category, "en")
+        db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.close()

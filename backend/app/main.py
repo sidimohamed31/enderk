@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import re
 
-from fastapi import APIRouter, Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .crud import (
+    _bg_translate_news,
+    _bg_translate_project,
     create_news,
     create_project,
     create_volunteer,
@@ -25,7 +27,7 @@ from .crud import (
     update_volunteer_status,
 )
 from .schemas import StatusUpdate
-from .db import get_db, init_db
+from .db import SessionLocal, get_db, init_db
 
 settings = get_settings()
 
@@ -85,6 +87,7 @@ def get_projects(db: Session = Depends(get_db)):
 
 @project_router.post("/projects", status_code=201)
 def create_project_endpoint(
+    background_tasks: BackgroundTasks,
     title: str = Form(...),
     region_id: str = Form(...),
     mouqataa: str | None = Form(None),
@@ -110,7 +113,7 @@ def create_project_endpoint(
         except json.JSONDecodeError:
             image_urls = []
 
-    return create_project(
+    result = create_project(
         db,
         title=title,
         region_id=region_id,
@@ -125,11 +128,14 @@ def create_project_endpoint(
         image_urls=image_urls,
         video_url=video_url.strip() if video_url else None,
     )
+    background_tasks.add_task(_bg_translate_project, SessionLocal, result.id)
+    return result
 
 
 @project_router.put("/projects/{project_id}")
 def update_project_endpoint(
     project_id: str,
+    background_tasks: BackgroundTasks,
     title: str = Form(...),
     region_id: str = Form(...),
     mouqataa: str | None = Form(None),
@@ -159,7 +165,7 @@ def update_project_endpoint(
         except json.JSONDecodeError:
             image_urls = []
 
-    return update_project(
+    result = update_project(
         db,
         project,
         title=title,
@@ -175,6 +181,8 @@ def update_project_endpoint(
         image_urls=image_urls,
         video_url=video_url.strip() if video_url else None,
     )
+    background_tasks.add_task(_bg_translate_project, SessionLocal, result.id)
+    return result
 
 
 @project_router.delete("/projects/{project_id}", status_code=204)
@@ -208,6 +216,7 @@ def get_news_article_endpoint(article_id: str, db: Session = Depends(get_db)):
 
 @news_router.post("/news", status_code=201)
 def create_news_endpoint(
+    background_tasks: BackgroundTasks,
     title: str = Form(...),
     excerpt: str = Form(""),
     body: str = Form(""),
@@ -218,7 +227,7 @@ def create_news_endpoint(
     video_file: UploadFile | None = File(None),
     db: Session = Depends(get_db),
 ):
-    return create_news(
+    result = create_news(
         db,
         title=title,
         excerpt=excerpt,
@@ -229,11 +238,14 @@ def create_news_endpoint(
         image_files=image_files or [],
         video_file=video_file,
     )
+    background_tasks.add_task(_bg_translate_news, SessionLocal, result.id)
+    return result
 
 
 @news_router.put("/news/{article_id}")
 def update_news_endpoint(
     article_id: str,
+    background_tasks: BackgroundTasks,
     title: str = Form(...),
     excerpt: str = Form(""),
     body: str = Form(""),
@@ -247,7 +259,7 @@ def update_news_endpoint(
     article = get_news_article(db, article_id)
     if not article:
         raise HTTPException(status_code=404, detail="News article not found")
-    return update_news(
+    result = update_news(
         db,
         article,
         title=title,
@@ -259,6 +271,8 @@ def update_news_endpoint(
         image_files=image_files or [],
         video_file=video_file,
     )
+    background_tasks.add_task(_bg_translate_news, SessionLocal, result.id)
+    return result
 
 
 @news_router.delete("/news/{article_id}", status_code=204)

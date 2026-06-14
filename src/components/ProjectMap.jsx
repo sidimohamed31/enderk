@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Calendar, CheckCircle, Film, Image as ImageIcon, Info, MapPin, X } from 'lucide-react';
 import { fetchProjects, peekProjectsCache } from '../lib/projectsApi';
 import { getRegionLabel, groupProjectsByRegion } from '../data/projectsData';
+import { localize } from '../lib/localize';
 
 // Real Mauritania outline path from simplemaps.com (CC-licensed)
 // viewBox: 0 0 1000 1000
@@ -213,7 +214,7 @@ export default function ProjectMap({ t, lang }) {
                           }}
                         >
                           {project.images[0] ? (
-                            <img src={project.images[0]} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={project.images[0]} alt={localize(project, 'title', lang)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
                             <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: 'var(--text-muted)' }}>
                               <ImageIcon size={20} />
@@ -230,9 +231,9 @@ export default function ProjectMap({ t, lang }) {
                               {project.images.length} photo{project.images.length === 1 ? '' : 's'}
                             </span>
                           </div>
-                          <h3 style={{ fontSize: '1.04rem', fontWeight: 800, marginTop: '8px', lineHeight: 1.25 }}>{project.title}</h3>
+                          <h3 style={{ fontSize: '1.04rem', fontWeight: 800, marginTop: '8px', lineHeight: 1.25 }}>{localize(project, 'title', lang)}</h3>
                           <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: 1.55 }}>
-                            {project.description.length > 130 ? `${project.description.slice(0, 130)}...` : project.description}
+                            {(() => { const d = localize(project, 'description', lang); return d.length > 130 ? `${d.slice(0, 130)}...` : d; })()}
                           </p>
 
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
@@ -246,7 +247,7 @@ export default function ProjectMap({ t, lang }) {
                                 fontWeight: 700,
                               }}
                             >
-                              {project.category}
+                              {localize(project, 'category', lang)}
                             </span>
                             {project.projectDate && (
                               <span
@@ -431,9 +432,9 @@ export default function ProjectMap({ t, lang }) {
                         letterSpacing: '1px',
                       }}
                     >
-                      {getRegionLabel(selectedProject.regionId, lang)} • {selectedProject.category}
+                      {getRegionLabel(selectedProject.regionId, lang)} • {localize(selectedProject, 'category', lang)}
                     </span>
-                    <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '6px' }}>{selectedProject.title}</h3>
+                    <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '6px' }}>{localize(selectedProject, 'title', lang)}</h3>
                     {selectedProject.projectDate && (
                       <p
                         style={{
@@ -455,7 +456,7 @@ export default function ProjectMap({ t, lang }) {
                     )}
                   </div>
 
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.7 }}>{selectedProject.description}</p>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.7 }}>{localize(selectedProject, 'description', lang)}</p>
 
                   <div
                     style={{
@@ -471,7 +472,7 @@ export default function ProjectMap({ t, lang }) {
                     <CheckCircle size={18} style={{ color: 'var(--emerald-500)', flexShrink: 0 }} />
                     <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>
                       <strong>{t.map_section.impact_label}</strong>
-                      {selectedProject.impact}
+                      {localize(selectedProject, 'impact', lang)}
                     </span>
                   </div>
 
@@ -534,7 +535,7 @@ export default function ProjectMap({ t, lang }) {
                               <div key={`${selectedProject.id}-${idx}`} style={{ borderRadius: '8px', overflow: 'hidden', height: '110px', cursor: 'zoom-in' }}>
                                 <img
                                   src={img}
-                                  alt={`${selectedProject.title}-${idx}`}
+                                  alt={`${localize(selectedProject, 'title', lang)}-${idx}`}
                                   style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
                                   onClick={() => window.open(img, '_blank')}
                                   onMouseEnter={(event) => {

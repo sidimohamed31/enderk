@@ -21,10 +21,24 @@ def init_db() -> None:
 
 def _run_migrations() -> None:
     with engine.connect() as conn:
-        existing = {col["name"] for col in inspect(engine).get_columns("projects")}
-        if "mouqataa" not in existing:
+        proj_cols = {col["name"] for col in inspect(engine).get_columns("projects")}
+        news_cols = {col["name"] for col in inspect(engine).get_columns("news_articles")}
+
+        if "mouqataa" not in proj_cols:
             conn.execute(text("ALTER TABLE projects ADD COLUMN mouqataa VARCHAR(128)"))
             conn.commit()
+
+        for col in ("title_fr", "title_en", "description_fr", "description_en",
+                    "impact_fr", "impact_en", "category_fr", "category_en"):
+            if col not in proj_cols:
+                conn.execute(text(f"ALTER TABLE projects ADD COLUMN {col} TEXT"))
+                conn.commit()
+
+        for col in ("title_fr", "title_en", "excerpt_fr", "excerpt_en",
+                    "body_fr", "body_en", "category_fr", "category_en"):
+            if col not in news_cols:
+                conn.execute(text(f"ALTER TABLE news_articles ADD COLUMN {col} TEXT"))
+                conn.commit()
 
 
 def get_db():

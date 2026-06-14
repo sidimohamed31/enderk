@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Calendar, Newspaper, Tag } from 'lucide-react';
 import { fetchNewsArticle } from '../lib/newsApi';
+import { localize } from '../lib/localize';
 
 const CATEGORY_PALETTE = {
   default: { bg: 'rgba(16,185,129,0.10)', color: '#047857', border: 'rgba(16,185,129,0.22)' },
@@ -120,7 +121,8 @@ export default function NewsDetail({ t, lang }) {
 
   const coverImage = article.images[0] || null;
   const extraImages = article.images.slice(1);
-  const p = getCategoryPalette(article.category);
+  const localCategory = localize(article, 'category', lang);
+  const p = getCategoryPalette(localCategory);
 
   return (
     <div style={{ minHeight: '100vh', background: '#fff' }}>
@@ -129,7 +131,7 @@ export default function NewsDetail({ t, lang }) {
       {coverImage ? (
         <div style={{ position: 'relative', height: 'clamp(380px, 65vh, 720px)', overflow: 'hidden' }}>
           <img
-            src={coverImage} alt={article.title}
+            src={coverImage} alt={localize(article, 'title', lang)}
             style={{
               width: '100%', height: '100%',
               objectFit: 'cover', objectPosition: 'center top',
@@ -159,13 +161,13 @@ export default function NewsDetail({ t, lang }) {
             padding: '0 24px 40px',
           }}>
             <div style={{ maxWidth: '820px', margin: '0 auto' }}>
-              <CategoryBadge category={article.category} light />
+              <CategoryBadge category={localCategory} light />
               <h1 style={{
                 color: 'white', fontWeight: 800, margin: '12px 0 0',
                 fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', lineHeight: 1.22,
                 textShadow: '0 2px 12px rgba(0,0,0,0.35)',
               }}>
-                {article.title}
+                {localize(article, 'title', lang)}
               </h1>
             </div>
           </div>
@@ -186,7 +188,7 @@ export default function NewsDetail({ t, lang }) {
               {t.news.back}
             </Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '24px', marginBottom: '14px', flexWrap: 'wrap' }}>
-              {article.category && <CategoryBadge category={article.category} />}
+              {article.category && <CategoryBadge category={localCategory} />}
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
                 <Calendar size={13} />
                 {formatDate(article.publishedAt, lang)}
@@ -196,7 +198,7 @@ export default function NewsDetail({ t, lang }) {
               fontSize: 'clamp(1.6rem, 4vw, 2.6rem)', fontWeight: 800,
               color: 'var(--text-primary)', lineHeight: 1.22, margin: 0,
             }}>
-              {article.title}
+              {localize(article, 'title', lang)}
             </h1>
           </div>
         </div>
@@ -214,7 +216,7 @@ export default function NewsDetail({ t, lang }) {
             borderBottom: '1px solid rgba(16,185,129,0.12)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              {article.category && <CategoryBadge category={article.category} />}
+              {article.category && <CategoryBadge category={localCategory} />}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.84rem' }}>
                 <Calendar size={14} />
                 {formatDate(article.publishedAt, lang)}
@@ -246,7 +248,7 @@ export default function NewsDetail({ t, lang }) {
             paddingBlock: '14px',
             borderRadius: '0 8px 8px 0',
           }}>
-            {article.excerpt}
+            {localize(article, 'excerpt', lang)}
           </p>
         )}
 
@@ -256,7 +258,7 @@ export default function NewsDetail({ t, lang }) {
             fontSize: '1rem', lineHeight: 2, color: 'var(--text-primary)',
             whiteSpace: 'pre-wrap',
           }}>
-            {article.body}
+            {localize(article, 'body', lang)}
           </div>
         )}
 
@@ -270,7 +272,7 @@ export default function NewsDetail({ t, lang }) {
             }}>
               {extraImages.map((img, i) => (
                 <img
-                  key={i} src={img} alt={`${article.title} — ${i + 2}`}
+                  key={i} src={img} alt={`${localize(article, 'title', lang)} — ${i + 2}`}
                   style={{
                     width: '100%', aspectRatio: '4/3', objectFit: 'cover',
                     borderRadius: '14px', display: 'block',

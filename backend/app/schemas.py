@@ -24,11 +24,19 @@ class ProjectRead(BaseModel):
 
     id: str
     title: str
+    title_fr: str | None = None
+    title_en: str | None = None
     region_id: str
     mouqataa: str | None = None
     category: str
+    category_fr: str | None = None
+    category_en: str | None = None
     description: str
+    description_fr: str | None = None
+    description_en: str | None = None
     impact: str
+    impact_fr: str | None = None
+    impact_en: str | None = None
     project_date: date
     created_at: datetime
     updated_at: datetime
@@ -61,9 +69,17 @@ class NewsRead(BaseModel):
 
     id: str
     title: str
+    title_fr: str | None = None
+    title_en: str | None = None
     excerpt: str
+    excerpt_fr: str | None = None
+    excerpt_en: str | None = None
     body: str
+    body_fr: str | None = None
+    body_en: str | None = None
     category: str
+    category_fr: str | None = None
+    category_en: str | None = None
     published_at: date
     created_at: datetime
     updated_at: datetime

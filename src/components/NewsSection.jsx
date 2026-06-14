@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar, FileImage, Newspaper, Tag } from 'lucide-react';
 import { fetchNews, peekNewsCache } from '../lib/newsApi';
+import { localize } from '../lib/localize';
 
 const CATEGORY_PALETTE = {
   default: { bg: 'rgba(16,185,129,0.10)', color: '#047857', border: 'rgba(16,185,129,0.22)' },
@@ -53,7 +54,8 @@ function CategoryBadge({ category }) {
 function FeaturedCard({ article, lang, t, visible }) {
   const [hovered, setHovered] = useState(false);
   const coverImage = article.images[0] || null;
-  const p = getCategoryPalette(article.category);
+  const localCategory = localize(article, 'category', lang);
+  const p = getCategoryPalette(localCategory);
 
   return (
     <Link
@@ -120,7 +122,7 @@ function FeaturedCard({ article, lang, t, visible }) {
           display: 'flex', flexDirection: 'column', gap: '11px', minWidth: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            {article.category && <CategoryBadge category={article.category} />}
+            {article.category && <CategoryBadge category={localCategory} />}
             <div style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               color: 'var(--text-muted)', fontSize: '0.76rem',
@@ -134,7 +136,7 @@ function FeaturedCard({ article, lang, t, visible }) {
             fontSize: 'clamp(1.05rem, 2vw, 1.4rem)', fontWeight: 800,
             color: 'var(--text-primary)', lineHeight: 1.3, margin: 0,
           }}>
-            {article.title}
+            {localize(article, 'title', lang)}
           </h3>
 
           {article.excerpt && (
@@ -144,7 +146,7 @@ function FeaturedCard({ article, lang, t, visible }) {
               display: '-webkit-box', WebkitLineClamp: 4,
               WebkitBoxOrient: 'vertical', overflow: 'hidden',
             }}>
-              {article.excerpt}
+              {localize(article, 'excerpt', lang)}
             </p>
           )}
 
@@ -168,7 +170,8 @@ function FeaturedCard({ article, lang, t, visible }) {
 function SmallCard({ article, lang, t, index, visible }) {
   const [hovered, setHovered] = useState(false);
   const coverImage = article.images[0] || null;
-  const p = getCategoryPalette(article.category);
+  const localCategory = localize(article, 'category', lang);
+  const p = getCategoryPalette(localCategory);
 
   return (
     <Link
@@ -200,7 +203,7 @@ function SmallCard({ article, lang, t, index, visible }) {
         }}>
           {coverImage ? (
             <img
-              src={coverImage} alt={article.title}
+              src={coverImage} alt={localize(article, 'title', lang)}
               style={{
                 width: '100%', height: '100%', objectFit: 'cover',
                 transform: hovered ? 'scale(1.08)' : 'scale(1)',
@@ -216,7 +219,7 @@ function SmallCard({ article, lang, t, index, visible }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           {article.category && (
             <div style={{ marginBottom: '7px' }}>
-              <CategoryBadge category={article.category} />
+              <CategoryBadge category={localCategory} />
             </div>
           )}
           <h3 style={{
@@ -224,7 +227,7 @@ function SmallCard({ article, lang, t, index, visible }) {
             lineHeight: 1.35, margin: '0 0 6px',
             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
           }}>
-            {article.title}
+            {localize(article, 'title', lang)}
           </h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: '0.74rem' }}>
             <Calendar size={11} />
