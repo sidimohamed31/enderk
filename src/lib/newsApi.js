@@ -71,6 +71,11 @@ export async function fetchNews() {
   return (data?.news || []).map(normalizeArticle);
 }
 
+export async function fetchNewsArticle(articleId) {
+  const data = await request(`/news/${articleId}`);
+  return normalizeArticle(data);
+}
+
 function buildNewsFormData(payload, imageFiles = [], videoFile = null) {
   const formData = new FormData();
   formData.append('title', payload.title);

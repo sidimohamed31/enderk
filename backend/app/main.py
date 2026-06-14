@@ -192,6 +192,14 @@ def get_news(db: Session = Depends(get_db)):
     return {"news": list_news(db)}
 
 
+@news_router.get("/news/{article_id}")
+def get_news_article_endpoint(article_id: str, db: Session = Depends(get_db)):
+    article = get_news_article(db, article_id)
+    if not article:
+        raise HTTPException(status_code=404, detail="News article not found")
+    return article
+
+
 @news_router.post("/news", status_code=201)
 def create_news_endpoint(
     title: str = Form(...),
