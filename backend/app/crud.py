@@ -275,3 +275,205 @@ def delete_project(db: Session, project: models.Project) -> None:
         delete_from_cloudinary(media.storage_path, media.kind)
     db.delete(project)
     db.commit()
+
+
+# ── News ──────────────────────────────────────────────────────────────────────
+
+def _news_to_read(article: models.NewsArticle) -> schemas.NewsRead:
+    media = list(article.media)
+    images = [item.url for item in media if item.kind == "image"]
+    video_url = next((item.url for item in media if item.kind == "video"), None)
+    return schemas.NewsRead.model_validate(
+        {
+            "id": article.id,
+            "title": article.title,
+            "excerpt": article.excerpt,
+            "body": article.body,
+            "category": article.category,
+            "published_at": article.published_at,
+            "created_at": article.created_at,
+            "updated_at": article.updated_at,
+            "media": [schemas.NewsMediaRead.model_validate(m) for m in media],
+            "images": images,
+            "video_url": video_url,
+        }
+    )
+
+
+def _persist_news_media(
+    db: Session,
+    article: models.NewsArticle,
+    *,
+    existing_media_json: str | None,
+    image_files: list[UploadFile],
+    video_file: UploadFile | None,
+) -> None:
+    sort_index = 0
+    existing_media = _store_existing_media(existing_media_json)
+
+    for item in existing_media:
+        kind = item.get("kind")
+        url = item.get("url")
+        if not kind or not url:
+            continue
+        media = models.NewsMedia(
+            article_id=article.id,
+            kind=kind,
+            source_type=item.get("source_type", "upload"),
+            url=url,
+            storage_path=item.get("storage_path"),
+            original_filename=item.get("original_filename"),
+            mime_type=item.get("mime_type"),
+            size_bytes=item.get("size_bytes"),
+            sort_order=sort_index,
+        )
+        db.add(media)
+        sort_index += 1
+
+    for image_file in image_files:
+        stored = upload_to_cloudinary(
+            image_file.file,
+            kind="image",
+            filename=image_file.filename,
+            mime_type=image_file.content_type,
+        )
+        media = models.NewsMedia(
+            article_id=article.id,
+            kind="image",
+            source_type="upload",
+            url=stored.url,
+            storage_path=stored.storage_path,
+            original_filename=stored.original_filename,
+            mime_type=stored.mime_type,
+            size_bytes=stored.size_bytes,
+            sort_order=sort_index,
+        )
+        db.add(media)
+        sort_index += 1
+
+    if video_file is not None:
+        stored = upload_to_cloudinary(
+            video_file.file,
+            kind="video",
+            filename=video_file.filename,
+            mime_type=video_file.content_type,
+        )
+        media = models.NewsMedia(
+            article_id=article.id,
+            kind="video",
+            source_type="upload",
+            url=stored.url,
+            storage_path=stored.storage_path,
+            original_filename=stored.original_filename,
+            mime_type=stored.mime_type,
+            size_bytes=stored.size_bytes,
+            sort_order=sort_index,
+        )
+        db.add(media)
+
+
+def list_news(db: Session) -> list[schemas.NewsRead]:
+    articles = (
+        db.query(models.NewsArticle)
+        .order_by(models.NewsArticle.published_at.desc())
+        .all()
+    )
+    return [_news_to_read(a) for a in articles]
+
+
+def get_news_article(db: Session, article_id: str) -> models.NewsArticle | None:
+    return (
+        db.query(models.NewsArticle)
+        .filter(models.NewsArticle.id == article_id)
+        .first()
+    )
+
+
+def create_news(
+    db: Session,
+    *,
+    title: str,
+    excerpt: str,
+    body: str,
+    category: str,
+    published_at: str | None,
+    existing_media_json: str | None,
+    image_files: list[UploadFile],
+    video_file: UploadFile | None,
+) -> schemas.NewsRead:
+    article = models.NewsArticle(
+        title=title.strip(),
+        excerpt=excerpt.strip(),
+        body=body.strip(),
+        category=category.strip(),
+        published_at=_parse_date(published_at),
+    )
+    db.add(article)
+    db.flush()
+
+    _persist_news_media(
+        db,
+        article,
+        existing_media_json=existing_media_json,
+        image_files=image_files,
+        video_file=video_file,
+    )
+    db.commit()
+    db.refresh(article)
+    return _news_to_read(article)
+
+
+def update_news(
+    db: Session,
+    article: models.NewsArticle,
+    *,
+    title: str,
+    excerpt: str,
+    body: str,
+    category: str,
+    published_at: str | None,
+    existing_media_json: str | None,
+    image_files: list[UploadFile],
+    video_file: UploadFile | None,
+) -> schemas.NewsRead:
+    current_media_payload = [
+        {
+            "kind": m.kind,
+            "source_type": m.source_type,
+            "url": m.url,
+            "storage_path": m.storage_path,
+            "original_filename": m.original_filename,
+            "mime_type": m.mime_type,
+            "size_bytes": m.size_bytes,
+        }
+        for m in list(article.media)
+    ]
+
+    for m in list(article.media):
+        db.delete(m)
+
+    article.title = title.strip()
+    article.excerpt = excerpt.strip()
+    article.body = body.strip()
+    article.category = category.strip()
+    article.published_at = _parse_date(published_at)
+
+    db.flush()
+
+    _persist_news_media(
+        db,
+        article,
+        existing_media_json=existing_media_json or json.dumps(current_media_payload),
+        image_files=image_files,
+        video_file=video_file,
+    )
+    db.commit()
+    db.refresh(article)
+    return _news_to_read(article)
+
+
+def delete_news(db: Session, article: models.NewsArticle) -> None:
+    for m in list(article.media):
+        delete_from_cloudinary(m.storage_path, m.kind)
+    db.delete(article)
+    db.commit()

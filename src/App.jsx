@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Hero from './components/Hero';
 import StatsSection from './components/StatsSection';
+import NewsSection from './components/NewsSection';
 import AboutUs from './components/AboutUs';
 import Interventions from './components/Interventions';
 import ProjectMap from './components/ProjectMap';
@@ -27,7 +28,7 @@ function App() {
     <Routes>
       <Route path="/admin" element={<MapAdmin />} />
       <Route element={<Layout lang={lang} setLang={setLang} t={t} />}>
-        <Route path="/" element={<><Hero t={t} lang={lang} /><StatsSection t={t} lang={lang} /></>} />
+        <Route path="/" element={<><Hero t={t} lang={lang} /><StatsSection t={t} lang={lang} /><NewsSection t={t} lang={lang} /></>} />
         <Route path="/about" element={<AboutUs t={t} lang={lang} />} />
         <Route path="/interventions" element={<Interventions t={t} lang={lang} />} />
         <Route path="/map" element={<ProjectMap t={t} lang={lang} />} />

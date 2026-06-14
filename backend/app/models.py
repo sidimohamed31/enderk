@@ -51,3 +51,40 @@ class ProjectMedia(Base):
 
     project: Mapped["Project"] = relationship(back_populates="media")
 
+
+class NewsArticle(Base):
+    __tablename__ = "news_articles"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    excerpt: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    body: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    category: Mapped[str] = mapped_column(String(128), nullable=False, default="")
+    published_at: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    media: Mapped[list["NewsMedia"]] = relationship(
+        back_populates="article",
+        cascade="all, delete-orphan",
+        order_by="NewsMedia.sort_order",
+    )
+
+
+class NewsMedia(Base):
+    __tablename__ = "news_media"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
+    article_id: Mapped[str] = mapped_column(String(36), ForeignKey("news_articles.id", ondelete="CASCADE"), nullable=False)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    source_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    url: Mapped[str] = mapped_column(Text, nullable=False)
+    storage_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    original_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    mime_type: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+
+    article: Mapped["NewsArticle"] = relationship(back_populates="media")
+

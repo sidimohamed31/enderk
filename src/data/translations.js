@@ -184,6 +184,14 @@ export const translations = {
         municipalities: 'بلديات ومناطق تدخل',
       }
     },
+    news: {
+      badge: 'أخبار المنظمة',
+      title: 'آخر الأخبار والأنشطة',
+      subtitle: 'تابعوا آخر أنشطتنا وإنجازاتنا ومبادراتنا الميدانية على أرض الواقع.',
+      readMore: 'اقرأ المزيد',
+      empty: 'لا توجد أخبار منشورة حتى الآن. تابعونا قريباً.',
+      loadError: 'تعذّر تحميل الأخبار.',
+    },
     footer: {
       about_title: "منظمة انديرك البيئية",
       about_desc: "منظمة موريتانية مستقلة غير ربحية تسعى لدمج حماية البيئة والتنمية المجتمعية التشاركية.",
@@ -376,6 +384,14 @@ export const translations = {
         municipalities: "communes et zones d'intervention",
       }
     },
+    news: {
+      badge: 'Actualités',
+      title: 'Dernières Nouvelles',
+      subtitle: 'Suivez nos dernières activités, réalisations et initiatives sur le terrain.',
+      readMore: 'Lire la suite',
+      empty: 'Aucune actualité publiée pour le moment. Revenez bientôt.',
+      loadError: 'Impossible de charger les actualités.',
+    },
     footer: {
       about_title: "ONG ENDEREK",
       about_desc: "Une organisation mauritanienne indépendante unissant protection de l'environnement et développement social.",
@@ -567,6 +583,14 @@ export const translations = {
         students:       'students reached through awareness activities',
         municipalities: 'municipalities & intervention zones',
       }
+    },
+    news: {
+      badge: 'Latest News',
+      title: 'News & Updates',
+      subtitle: 'Stay informed about our latest activities, achievements, and field initiatives.',
+      readMore: 'Read more',
+      empty: 'No news articles published yet. Check back soon.',
+      loadError: 'Could not load news articles.',
     },
     footer: {
       about_title: "ENDERK NGO",

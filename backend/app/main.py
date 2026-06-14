@@ -7,7 +7,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from .config import get_settings
-from .crud import create_project, delete_project, get_project, list_projects, update_project
+from .crud import (
+    create_news,
+    create_project,
+    delete_news,
+    delete_project,
+    get_news_article,
+    get_project,
+    list_news,
+    list_projects,
+    update_news,
+    update_project,
+)
 from .db import get_db, init_db
 
 settings = get_settings()
@@ -171,3 +182,79 @@ def delete_project_endpoint(project_id: str, db: Session = Depends(get_db)):
 
 app.include_router(project_router)
 app.include_router(project_router, prefix="/api")
+
+
+news_router = APIRouter()
+
+
+@news_router.get("/news")
+def get_news(db: Session = Depends(get_db)):
+    return {"news": list_news(db)}
+
+
+@news_router.post("/news", status_code=201)
+def create_news_endpoint(
+    title: str = Form(...),
+    excerpt: str = Form(""),
+    body: str = Form(""),
+    category: str = Form(""),
+    published_at: str | None = Form(None),
+    existing_media_json: str | None = Form(None),
+    image_files: list[UploadFile] = File(default_factory=list),
+    video_file: UploadFile | None = File(None),
+    db: Session = Depends(get_db),
+):
+    return create_news(
+        db,
+        title=title,
+        excerpt=excerpt,
+        body=body,
+        category=category,
+        published_at=published_at,
+        existing_media_json=existing_media_json,
+        image_files=image_files or [],
+        video_file=video_file,
+    )
+
+
+@news_router.put("/news/{article_id}")
+def update_news_endpoint(
+    article_id: str,
+    title: str = Form(...),
+    excerpt: str = Form(""),
+    body: str = Form(""),
+    category: str = Form(""),
+    published_at: str | None = Form(None),
+    existing_media_json: str | None = Form(None),
+    image_files: list[UploadFile] = File(default_factory=list),
+    video_file: UploadFile | None = File(None),
+    db: Session = Depends(get_db),
+):
+    article = get_news_article(db, article_id)
+    if not article:
+        raise HTTPException(status_code=404, detail="News article not found")
+    return update_news(
+        db,
+        article,
+        title=title,
+        excerpt=excerpt,
+        body=body,
+        category=category,
+        published_at=published_at,
+        existing_media_json=existing_media_json,
+        image_files=image_files or [],
+        video_file=video_file,
+    )
+
+
+@news_router.delete("/news/{article_id}", status_code=204)
+def delete_news_endpoint(article_id: str, db: Session = Depends(get_db)):
+    article = get_news_article(db, article_id)
+    if not article:
+        raise HTTPException(status_code=404, detail="News article not found")
+    delete_news(db, article)
+    return None
+
+
+app.include_router(news_router)
+app.include_router(news_router, prefix="/api")
