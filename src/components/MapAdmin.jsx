@@ -115,6 +115,9 @@ const adminCopy = {
     volunteerInterest: 'مجال الاهتمام',
     volunteerExperience: 'الخبرة',
     volunteerDate: 'تاريخ التقديم',
+    retranslateBtn: 'ترجمة المحتوى القديم',
+    retranslating: 'جاري الترجمة...',
+    retranslated: (p, n) => `تمت جدولة الترجمة: ${p} مشروع و ${n} خبر`,
     whatsappMessage: (name) => `مرحباً ${name}، شكراً على تسجيلك كمتطوع في منظمة انديرك البيئية. يسعدنا التواصل معك!`,
   },
   fr: {
@@ -197,6 +200,9 @@ const adminCopy = {
     volunteerInterest: 'Domaine d\'intérêt',
     volunteerExperience: 'Expérience',
     volunteerDate: 'Date de candidature',
+    retranslateBtn: 'Traduire l\'ancien contenu',
+    retranslating: 'Traduction en cours...',
+    retranslated: (p, n) => `Traduction lancée : ${p} projets et ${n} articles`,
     whatsappMessage: (name) => `Bonjour ${name}, merci pour votre inscription comme bénévole chez ENDERK. Nous sommes ravis de prendre contact avec vous !`,
   },
   en: {
@@ -279,6 +285,9 @@ const adminCopy = {
     volunteerInterest: 'Area of interest',
     volunteerExperience: 'Experience',
     volunteerDate: 'Submitted',
+    retranslateBtn: 'Translate existing content',
+    retranslating: 'Translating...',
+    retranslated: (p, n) => `Translation queued: ${p} projects and ${n} news articles`,
     whatsappMessage: (name) => `Hello ${name}, thank you for registering as a volunteer with ENDERK Environmental NGO. We're happy to reach out!`,
   },
 };
@@ -332,6 +341,10 @@ export default function MapAdmin() {
   // Volunteers state
   const [volunteers, setVolunteers] = useState([]);
   const [volunteersLoading, setVolunteersLoading] = useState(true);
+
+  // Retranslate state
+  const [retranslating, setRetranslating] = useState(false);
+  const [retranslateNotice, setRetranslateNotice] = useState('');
 
   const ui = adminCopy[lang] || adminCopy.en;
   const editingProject = useMemo(
@@ -550,6 +563,26 @@ export default function MapAdmin() {
     window.open(`https://wa.me/${digits}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
+  // ── Retranslate all ─────────────────────────────────────────────────────────
+
+  const handleRetranslateAll = async () => {
+    setRetranslating(true);
+    setRetranslateNotice('');
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL ||
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+          ? 'http://localhost:8000'
+          : 'https://enderk.onrender.com');
+      const res = await fetch(`${API_BASE}/admin/retranslate`, { method: 'POST' });
+      const data = await res.json();
+      setRetranslateNotice(ui.retranslated(data.untranslated_projects ?? 0, data.untranslated_news ?? 0));
+    } catch {
+      setRetranslateNotice('Error triggering retranslation.');
+    } finally {
+      setRetranslating(false);
+    }
+  };
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   const selectedVideoLabel = videoFile ? `${ui.selectedVideo}: ${videoFile.name}` : '';
@@ -596,6 +629,27 @@ export default function MapAdmin() {
                   {code}
                 </button>
               ))}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+              <button
+                type="button"
+                onClick={handleRetranslateAll}
+                disabled={retranslating}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  padding: '10px 16px', borderRadius: '14px',
+                  border: '1px solid rgba(59,130,246,0.25)', background: retranslating ? 'rgba(59,130,246,0.05)' : 'white',
+                  color: '#1d4ed8', fontWeight: 700, cursor: retranslating ? 'default' : 'pointer',
+                  boxShadow: 'var(--shadow-soft)', fontSize: '0.85rem', opacity: retranslating ? 0.7 : 1,
+                }}
+              >
+                <Globe size={15} />
+                {retranslating ? ui.retranslating : ui.retranslateBtn}
+              </button>
+              {retranslateNotice && (
+                <span style={{ fontSize: '0.78rem', color: '#1d4ed8', fontWeight: 600 }}>{retranslateNotice}</span>
+              )}
             </div>
 
             <a href="/" style={{

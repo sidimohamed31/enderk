@@ -31,11 +31,19 @@ def _project_to_read(project: models.Project) -> schemas.ProjectRead:
         {
             "id": project.id,
             "title": project.title,
+            "title_fr": project.title_fr,
+            "title_en": project.title_en,
             "region_id": project.region_id,
             "mouqataa": project.mouqataa,
             "category": project.category,
+            "category_fr": project.category_fr,
+            "category_en": project.category_en,
             "description": project.description,
+            "description_fr": project.description_fr,
+            "description_en": project.description_en,
             "impact": project.impact,
+            "impact_fr": project.impact_fr,
+            "impact_en": project.impact_en,
             "project_date": project.project_date,
             "created_at": project.created_at,
             "updated_at": project.updated_at,
@@ -287,9 +295,17 @@ def _news_to_read(article: models.NewsArticle) -> schemas.NewsRead:
         {
             "id": article.id,
             "title": article.title,
+            "title_fr": article.title_fr,
+            "title_en": article.title_en,
             "excerpt": article.excerpt,
+            "excerpt_fr": article.excerpt_fr,
+            "excerpt_en": article.excerpt_en,
             "body": article.body,
+            "body_fr": article.body_fr,
+            "body_en": article.body_en,
             "category": article.category,
+            "category_fr": article.category_fr,
+            "category_en": article.category_en,
             "published_at": article.published_at,
             "created_at": article.created_at,
             "updated_at": article.updated_at,
@@ -560,6 +576,25 @@ def _bg_translate_project(session_factory, project_id: str) -> None:
         db.rollback()
     finally:
         db.close()
+
+
+def _bg_retranslate_all(session_factory) -> None:
+    db = session_factory()
+    try:
+        project_ids = [
+            p.id for p in db.query(models.Project.id).filter(models.Project.title_fr == None).all()
+        ]
+        article_ids = [
+            a.id for a in db.query(models.NewsArticle.id).filter(models.NewsArticle.title_fr == None).all()
+        ]
+    finally:
+        db.close()
+
+    for pid in project_ids:
+        _bg_translate_project(session_factory, pid)
+
+    for aid in article_ids:
+        _bg_translate_news(session_factory, aid)
 
 
 def _bg_translate_news(session_factory, article_id: str) -> None:

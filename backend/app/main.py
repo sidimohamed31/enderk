@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .crud import (
+    _bg_retranslate_all,
     _bg_translate_news,
     _bg_translate_project,
     create_news,
@@ -183,6 +184,15 @@ def update_project_endpoint(
     )
     background_tasks.add_task(_bg_translate_project, SessionLocal, result.id)
     return result
+
+
+@project_router.post("/admin/retranslate", status_code=202)
+def admin_retranslate_endpoint(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    from . import models as _models
+    proj_count = db.query(_models.Project).filter(_models.Project.title_fr == None).count()
+    news_count = db.query(_models.NewsArticle).filter(_models.NewsArticle.title_fr == None).count()
+    background_tasks.add_task(_bg_retranslate_all, SessionLocal)
+    return {"status": "queued", "untranslated_projects": proj_count, "untranslated_news": news_count}
 
 
 @project_router.delete("/projects/{project_id}", status_code=204)
