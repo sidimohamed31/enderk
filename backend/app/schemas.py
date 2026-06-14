@@ -25,6 +25,7 @@ class ProjectRead(BaseModel):
     id: str
     title: str
     region_id: str
+    mouqataa: str | None = None
     category: str
     description: str
     impact: str

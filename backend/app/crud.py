@@ -32,6 +32,7 @@ def _project_to_read(project: models.Project) -> schemas.ProjectRead:
             "id": project.id,
             "title": project.title,
             "region_id": project.region_id,
+            "mouqataa": project.mouqataa,
             "category": project.category,
             "description": project.description,
             "impact": project.impact,
@@ -175,6 +176,7 @@ def create_project(
     *,
     title: str,
     region_id: str,
+    mouqataa: str | None,
     category: str,
     description: str,
     impact: str,
@@ -188,6 +190,7 @@ def create_project(
     project = models.Project(
         title=title.strip(),
         region_id=region_id.strip(),
+        mouqataa=mouqataa.strip() if mouqataa else None,
         category=category.strip(),
         description=description.strip(),
         impact=impact.strip(),
@@ -216,6 +219,7 @@ def update_project(
     *,
     title: str,
     region_id: str,
+    mouqataa: str | None,
     category: str,
     description: str,
     impact: str,
@@ -244,6 +248,7 @@ def update_project(
 
     project.title = title.strip()
     project.region_id = region_id.strip()
+    project.mouqataa = mouqataa.strip() if mouqataa else None
     project.category = category.strip()
     project.description = description.strip()
     project.impact = impact.strip()

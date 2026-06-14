@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Eye, FileImage, Globe, PencilLine, Plus, Save, Trash2, Video } from 'lucide-react';
 import { createProject, deleteProject, fetchProjects, updateProject } from '../lib/projectsApi';
-import { getRegionLabel, regionPins } from '../data/projectsData';
+import { getRegionLabel, mouqataasData, regionPins } from '../data/projectsData';
 
 const emptyForm = {
   id: '',
   title: '',
   regionId: regionPins[0]?.id || '',
+  mouqataa: mouqataasData[regionPins[0]?.id]?.[0] || '',
   category: '',
   description: '',
   impact: '',
@@ -27,7 +28,8 @@ const adminCopy = {
     newButton: 'جديد',
     titleLabel: 'عنوان المشروع',
     titlePlaceholder: 'حملة تنظيف الشاطئ',
-    regionLabel: 'المنطقة',
+    regionLabel: 'الولاية',
+    mouqataaLabel: 'المقاطعة',
     categoryLabel: 'الفئة',
     categoryPlaceholder: 'البيئة البحرية',
     descriptionLabel: 'الوصف',
@@ -70,7 +72,8 @@ const adminCopy = {
     newButton: 'Nouveau',
     titleLabel: 'Titre du projet',
     titlePlaceholder: 'Campagne de nettoyage des plages',
-    regionLabel: 'Région',
+    regionLabel: 'Wilaya',
+    mouqataaLabel: 'Moughataa',
     categoryLabel: 'Catégorie',
     categoryPlaceholder: 'Environnement marin',
     descriptionLabel: 'Description',
@@ -113,7 +116,8 @@ const adminCopy = {
     newButton: 'New',
     titleLabel: 'Project title',
     titlePlaceholder: 'Beach cleanup campaign',
-    regionLabel: 'Region',
+    regionLabel: 'Wilaya',
+    mouqataaLabel: 'Mouqataa',
     categoryLabel: 'Category',
     categoryPlaceholder: 'Marine environment',
     descriptionLabel: 'Description',
@@ -222,6 +226,7 @@ export default function MapAdmin() {
       id: project.id,
       title: project.title,
       regionId: project.regionId,
+      mouqataa: project.mouqataa || mouqataasData[project.regionId]?.[0] || '',
       category: project.category,
       description: project.description,
       impact: project.impact,
@@ -248,6 +253,7 @@ export default function MapAdmin() {
       const payload = {
         title: form.title.trim(),
         regionId: form.regionId,
+        mouqataa: form.mouqataa,
         category: form.category.trim(),
         description: form.description.trim(),
         impact: form.impact.trim(),
@@ -408,7 +414,11 @@ export default function MapAdmin() {
                   <select
                     className="form-control"
                     value={form.regionId}
-                    onChange={(event) => setForm({ ...form, regionId: event.target.value })}
+                    onChange={(event) => {
+                      const newRegionId = event.target.value;
+                      const firstMouqataa = mouqataasData[newRegionId]?.[0] || '';
+                      setForm({ ...form, regionId: newRegionId, mouqataa: firstMouqataa });
+                    }}
                   >
                     {regionPins.map((region) => (
                       <option key={region.id} value={region.id}>
@@ -419,14 +429,27 @@ export default function MapAdmin() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">{ui.categoryLabel}</label>
-                  <input
+                  <label className="form-label">{ui.mouqataaLabel}</label>
+                  <select
                     className="form-control"
-                    value={form.category}
-                    onChange={(event) => setForm({ ...form, category: event.target.value })}
-                    placeholder={ui.categoryPlaceholder}
-                  />
+                    value={form.mouqataa}
+                    onChange={(event) => setForm({ ...form, mouqataa: event.target.value })}
+                  >
+                    {(mouqataasData[form.regionId] || []).map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">{ui.categoryLabel}</label>
+                <input
+                  className="form-control"
+                  value={form.category}
+                  onChange={(event) => setForm({ ...form, category: event.target.value })}
+                  placeholder={ui.categoryPlaceholder}
+                />
               </div>
 
               <div className="form-group">

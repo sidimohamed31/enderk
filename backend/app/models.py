@@ -19,6 +19,7 @@ class Project(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     region_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    mouqataa: Mapped[str | None] = mapped_column(String(128), nullable=True, default=None)
     category: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     impact: Mapped[str] = mapped_column(Text, nullable=False, default="")

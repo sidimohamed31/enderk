@@ -55,6 +55,7 @@ export function normalizeProject(project) {
     id: project.id,
     title: project.title,
     regionId: project.region_id,
+    mouqataa: project.mouqataa || '',
     category: project.category,
     description: project.description,
     impact: project.impact,
@@ -86,6 +87,7 @@ function buildProjectFormData(payload, imageFiles = [], videoFile = null) {
   const formData = new FormData();
   appendField(formData, 'title', payload.title);
   appendField(formData, 'region_id', payload.regionId);
+  appendField(formData, 'mouqataa', payload.mouqataa);
   appendField(formData, 'category', payload.category);
   appendField(formData, 'description', payload.description);
   appendField(formData, 'impact', payload.impact);

@@ -1,3 +1,19 @@
+export const mouqataasData = {
+  nouakchott:   ['Dar Naim', 'Toujounine', 'Teyaret', 'Tevragh Zeina', 'Ksar', 'Sebkha', 'Arafat', 'El Mina', 'Riyad'],
+  nouadhibou:   ['Nouadhibou', 'Chami'],
+  trarza:       ['Rosso', 'Keur Macène', 'Boutilimit', 'Oued Naga', 'Mederdra', 'Rkiz', 'Tékane'],
+  brakna:       ['Aleg', 'Boghé', 'Magta Lahjar', 'Bababé', "M'Bagne", 'Malé'],
+  guidimagha:   ['Sélibabi', 'Ould Yenge', 'Ghabou', 'Wompou'],
+  gorgol:       ['Kaédi', 'Maghama', "M'Bout", 'Monguel', 'Lexeiba I'],
+  assaba:       ['Kiffa', 'Barkeol', 'Boumdeid', 'Guerou', 'Kankossa'],
+  adrar:        ['Atar', 'Aoujeft', 'Chinguetti', 'Ouadane'],
+  inchiri:      ['Akjoujt', 'Bennichab'],
+  tagant:       ['Tidjikja', 'Moudjéria', 'Tichit'],
+  hodh_gharbi:  ['Aioun el Atrouss', 'Tintane', 'Kobenni', 'Tamcheket'],
+  hodh_chargui: ['Néma', 'Adel Begrou', 'Amourj', 'Bassiknou', 'Diguenni', 'Oualata', 'Timbedra', 'Dhar'],
+  tiris:        ['Zouerate', 'Fdérik', 'Bir Moghrein'],
+};
+
 export const regionPins = [
   { id: 'nouakchott', x: 161, y: 716, label_ar: 'نواكشوط', label_fr: 'Nouakchott', label_en: 'Nouakchott' },
   { id: 'nouadhibou', x: 90, y: 514, label_ar: 'نواذيبو', label_fr: 'Nouadhibou', label_en: 'Nouadhibou' },
