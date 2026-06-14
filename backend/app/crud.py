@@ -579,14 +579,11 @@ def _bg_translate_project(session_factory, project_id: str) -> None:
 
 
 def _bg_retranslate_all(session_factory) -> None:
+    # Retranslate every record — covers both NULL and bad data (e.g. stored error strings)
     db = session_factory()
     try:
-        project_ids = [
-            p.id for p in db.query(models.Project.id).filter(models.Project.title_fr == None).all()
-        ]
-        article_ids = [
-            a.id for a in db.query(models.NewsArticle.id).filter(models.NewsArticle.title_fr == None).all()
-        ]
+        project_ids = [p.id for p in db.query(models.Project.id).all()]
+        article_ids = [a.id for a in db.query(models.NewsArticle.id).all()]
     finally:
         db.close()
 

@@ -16,8 +16,14 @@ def _call_mymemory(text: str, source: str, target: str) -> str:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8"))
+            # Non-200 status means API error — do not store the error message
+            if data.get("responseStatus", 200) != 200:
+                return text
             translated = data.get("responseData", {}).get("translatedText", "")
-            return translated if translated else text
+            # Extra guard: API sometimes returns the error string even with 200
+            if not translated or "QUERY LENGTH LIMIT" in translated:
+                return text
+            return translated
     except Exception:
         return text
 
