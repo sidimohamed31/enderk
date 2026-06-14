@@ -1,23 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
+import { Droplets, Users, TreePine, Sprout, GraduationCap, BookOpen, MapPin } from 'lucide-react';
 
 const STATS = [
-  { icon: '💧', value: 700, suffix: '+', key: 'water' },
-  { icon: '👨‍👩‍👧‍👦', value: 220, suffix: '', key: 'families' },
-  { icon: '🌳', value: 300, suffix: '', key: 'trees' },
-  { icon: '🌱', value: 20, suffix: '', key: 'nurseries' },
-  { icon: '👩‍🎓👨‍🎓', value: 150, suffix: '', key: 'youth' },
-  { icon: '🏫', value: 200, suffix: '', key: 'students' },
-  { icon: '🏘️', value: 4, suffix: '', key: 'municipalities' },
+  { Icon: Droplets,      value: 700, suffix: '+', key: 'water' },
+  { Icon: Users,         value: 220, suffix: '',  key: 'families' },
+  { Icon: TreePine,      value: 300, suffix: '',  key: 'trees' },
+  { Icon: Sprout,        value: 20,  suffix: '',  key: 'nurseries' },
+  { Icon: GraduationCap, value: 150, suffix: '',  key: 'youth' },
+  { Icon: BookOpen,      value: 200, suffix: '',  key: 'students' },
+  { Icon: MapPin,        value: 4,   suffix: '',  key: 'municipalities' },
 ];
 
 const ACCENTS = [
-  { bg: 'rgba(16,185,129,0.07)',  border: 'rgba(16,185,129,0.25)',  num: '#047857', shadow: 'rgba(16,185,129,0.22)' },
-  { bg: 'rgba(59,130,246,0.07)',  border: 'rgba(59,130,246,0.25)',  num: '#1d4ed8', shadow: 'rgba(59,130,246,0.22)' },
-  { bg: 'rgba(245,158,11,0.07)',  border: 'rgba(245,158,11,0.25)',  num: '#92400e', shadow: 'rgba(245,158,11,0.22)' },
-  { bg: 'rgba(16,185,129,0.07)',  border: 'rgba(16,185,129,0.25)',  num: '#047857', shadow: 'rgba(16,185,129,0.22)' },
-  { bg: 'rgba(139,92,246,0.07)',  border: 'rgba(139,92,246,0.25)',  num: '#5b21b6', shadow: 'rgba(139,92,246,0.22)' },
-  { bg: 'rgba(239,68,68,0.07)',   border: 'rgba(239,68,68,0.25)',   num: '#991b1b', shadow: 'rgba(239,68,68,0.22)' },
-  { bg: 'rgba(20,184,166,0.07)',  border: 'rgba(20,184,166,0.25)',  num: '#0f766e', shadow: 'rgba(20,184,166,0.22)' },
+  { cardBg: 'rgba(16,185,129,0.06)',  iconBg: 'rgba(16,185,129,0.14)',  border: 'rgba(16,185,129,0.22)',  num: '#047857', icon: '#059669', shadow: 'rgba(16,185,129,0.22)' },
+  { cardBg: 'rgba(59,130,246,0.06)',  iconBg: 'rgba(59,130,246,0.14)',  border: 'rgba(59,130,246,0.22)',  num: '#1d4ed8', icon: '#2563eb', shadow: 'rgba(59,130,246,0.22)' },
+  { cardBg: 'rgba(245,158,11,0.06)',  iconBg: 'rgba(245,158,11,0.14)',  border: 'rgba(245,158,11,0.22)',  num: '#92400e', icon: '#b45309', shadow: 'rgba(245,158,11,0.22)' },
+  { cardBg: 'rgba(16,185,129,0.06)',  iconBg: 'rgba(16,185,129,0.14)',  border: 'rgba(16,185,129,0.22)',  num: '#047857', icon: '#059669', shadow: 'rgba(16,185,129,0.22)' },
+  { cardBg: 'rgba(139,92,246,0.06)',  iconBg: 'rgba(139,92,246,0.14)',  border: 'rgba(139,92,246,0.22)',  num: '#5b21b6', icon: '#7c3aed', shadow: 'rgba(139,92,246,0.22)' },
+  { cardBg: 'rgba(239,68,68,0.06)',   iconBg: 'rgba(239,68,68,0.14)',   border: 'rgba(239,68,68,0.22)',   num: '#991b1b', icon: '#dc2626', shadow: 'rgba(239,68,68,0.22)'  },
+  { cardBg: 'rgba(20,184,166,0.06)',  iconBg: 'rgba(20,184,166,0.14)',  border: 'rgba(20,184,166,0.22)',  num: '#0f766e', icon: '#14b8a6', shadow: 'rgba(20,184,166,0.22)' },
 ];
 
 function useCountUp(target, started) {
@@ -43,6 +44,7 @@ function StatCard({ stat, label, index, started }) {
   const [visible, setVisible] = useState(false);
   const [hovered, setHovered] = useState(false);
   const accent = ACCENTS[index];
+  const { Icon } = stat;
 
   useEffect(() => {
     if (!started) return;
@@ -50,44 +52,53 @@ function StatCard({ stat, label, index, started }) {
     return () => clearTimeout(t);
   }, [started, index]);
 
-  const translateY = !visible ? 24 : hovered ? -7 : 0;
-  const scale = !visible ? 0.95 : hovered ? 1.03 : 1;
-
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         background: hovered
-          ? accent.bg.replace('0.07', '0.14')
-          : accent.bg,
-        border: `1.5px solid ${hovered ? accent.border.replace('0.25', '0.5') : accent.border}`,
+          ? accent.cardBg.replace('0.06', '0.12')
+          : accent.cardBg,
+        border: `1.5px solid ${hovered ? accent.border.replace('0.22', '0.45') : accent.border}`,
         borderRadius: '18px',
-        padding: '30px 18px 26px',
+        padding: '28px 16px 24px',
         textAlign: 'center',
         cursor: 'default',
         opacity: visible ? 1 : 0,
-        transform: `translateY(${translateY}px) scale(${scale})`,
+        transform: !visible
+          ? 'translateY(22px) scale(0.95)'
+          : hovered
+            ? 'translateY(-7px) scale(1.03)'
+            : 'translateY(0) scale(1)',
         boxShadow: hovered
           ? `0 16px 40px ${accent.shadow}, 0 4px 12px rgba(0,0,0,0.06)`
-          : '0 2px 8px rgba(0,0,0,0.05)',
+          : '0 2px 8px rgba(0,0,0,0.04)',
         transition:
           'opacity 0.5s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, background 0.25s ease, border-color 0.25s ease',
       }}
     >
+      {/* Icon circle */}
       <div style={{
-        fontSize: '2.3rem',
-        marginBottom: '14px',
-        lineHeight: 1,
-        display: 'block',
-        transform: hovered ? 'scale(1.18)' : 'scale(1)',
-        transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+        width: '58px',
+        height: '58px',
+        borderRadius: '50%',
+        background: hovered
+          ? accent.iconBg.replace('0.14', '0.24')
+          : accent.iconBg,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '0 auto 16px',
+        transform: hovered ? 'scale(1.12) rotate(-4deg)' : 'scale(1) rotate(0deg)',
+        transition: 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1), background 0.25s ease',
       }}>
-        {stat.icon}
+        <Icon size={26} color={accent.icon} strokeWidth={1.8} />
       </div>
 
+      {/* Count */}
       <div style={{
-        fontSize: 'clamp(1.9rem, 3vw, 2.6rem)',
+        fontSize: 'clamp(1.8rem, 3vw, 2.5rem)',
         fontWeight: 800,
         color: accent.num,
         lineHeight: 1,
@@ -98,8 +109,9 @@ function StatCard({ stat, label, index, started }) {
         {count}{stat.suffix}
       </div>
 
+      {/* Label */}
       <div style={{
-        fontSize: '0.82rem',
+        fontSize: '0.8rem',
         color: 'var(--text-secondary)',
         lineHeight: 1.55,
         fontWeight: 500,
