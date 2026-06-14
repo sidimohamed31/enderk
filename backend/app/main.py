@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from fastapi import APIRouter, Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -13,6 +15,20 @@ settings = get_settings()
 app = FastAPI(title="ENDERK Projects API", version="1.0.0")
 project_router = APIRouter()
 
+
+class CollapseRepeatedSlashesMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            path = scope.get("path", "")
+            collapsed = re.sub(r"/{2,}", "/", path)
+            if collapsed and collapsed != path:
+                scope = dict(scope)
+                scope["path"] = collapsed
+        await self.app(scope, receive, send)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list or ["*"],
@@ -20,6 +36,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(CollapseRepeatedSlashesMiddleware)
 
 
 @app.on_event("startup")
