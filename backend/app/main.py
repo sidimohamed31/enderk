@@ -31,6 +31,17 @@ def health():
     return {"status": "ok"}
 
 
+@app.get("/")
+def root():
+    return {
+        "status": "ok",
+        "service": "ENDEREK API",
+        "docs": "/docs",
+        "health": "/health",
+        "projects": "/projects",
+    }
+
+
 @app.get("/projects")
 def get_projects(db: Session = Depends(get_db)):
     return {"projects": list_projects(db)}
