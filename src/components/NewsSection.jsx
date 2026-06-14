@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Calendar, FileImage, Newspaper, Tag } from 'lucide-react';
+import { ArrowRight, Calendar, FileImage, Newspaper, Tag, X, Play } from 'lucide-react';
 import { fetchNews } from '../lib/newsApi';
 
 const CATEGORY_PALETTE = {
   default: { bg: 'rgba(16,185,129,0.10)', color: '#047857', border: 'rgba(16,185,129,0.22)' },
-  blue:    { bg: 'rgba(59,130,246,0.10)', color: '#1d4ed8', border: 'rgba(59,130,246,0.22)' },
+  blue:    { bg: 'rgba(59,130,246,0.10)',  color: '#1d4ed8', border: 'rgba(59,130,246,0.22)' },
   purple:  { bg: 'rgba(139,92,246,0.10)', color: '#5b21b6', border: 'rgba(139,92,246,0.22)' },
-  amber:   { bg: 'rgba(245,158,11,0.10)', color: '#92400e', border: 'rgba(245,158,11,0.22)' },
-  red:     { bg: 'rgba(239,68,68,0.10)',  color: '#991b1b', border: 'rgba(239,68,68,0.22)'  },
+  amber:   { bg: 'rgba(245,158,11,0.10)',  color: '#92400e', border: 'rgba(245,158,11,0.22)' },
+  red:     { bg: 'rgba(239,68,68,0.10)',   color: '#991b1b', border: 'rgba(239,68,68,0.22)'  },
 };
 
 const CATEGORY_MAP = {
@@ -40,7 +40,7 @@ function CategoryBadge({ category }) {
       display: 'inline-flex', alignItems: 'center', gap: '5px',
       padding: '4px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 700,
       letterSpacing: '0.05em', background: p.bg, color: p.color,
-      border: `1px solid ${p.border}`,
+      border: `1px solid ${p.border}`, whiteSpace: 'nowrap',
     }}>
       <Tag size={10} />
       {category}
@@ -48,98 +48,269 @@ function CategoryBadge({ category }) {
   );
 }
 
-function FeaturedCard({ article, lang, t, visible }) {
+/* ─── Article detail modal ─────────────────────────────────────────────── */
+function ArticleModal({ article, lang, t, onClose }) {
+  const p = getCategoryPalette(article.category);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(10,20,15,0.60)', backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '16px', animation: 'modalFadeIn 0.22s ease',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'white', borderRadius: '24px', overflow: 'hidden',
+          maxWidth: '760px', width: '100%', maxHeight: '90vh', overflowY: 'auto',
+          boxShadow: '0 40px 100px rgba(0,0,0,0.25), 0 12px 32px rgba(16,185,129,0.08)',
+          animation: 'modalSlideUp 0.32s cubic-bezier(0.34,1.56,0.64,1)',
+          scrollbarWidth: 'thin',
+        }}
+      >
+        {/* Cover image */}
+        {article.images[0] && (
+          <div style={{ position: 'relative', paddingTop: '48%', overflow: 'hidden', background: '#eef8f4' }}>
+            <img
+              src={article.images[0]}
+              alt={article.title}
+              style={{
+                position: 'absolute', inset: 0, width: '100%', height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.22) 0%, transparent 55%)',
+            }} />
+          </div>
+        )}
+
+        {/* Body */}
+        <div style={{ padding: '32px 36px 36px' }}>
+          {/* Close */}
+          <div style={{ display: 'flex', justifyContent: lang === 'ar' ? 'flex-start' : 'flex-end', marginBottom: '12px' }}>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '50%',
+                width: '38px', height: '38px', cursor: 'pointer', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.12)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
+            >
+              <X size={17} />
+            </button>
+          </div>
+
+          {/* Meta */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            {article.category && <CategoryBadge category={article.category} />}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+              <Calendar size={13} />
+              {formatDate(article.publishedAt, lang)}
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 style={{
+            fontSize: 'clamp(1.3rem, 3vw, 1.95rem)', fontWeight: 800,
+            color: 'var(--text-primary)', lineHeight: 1.3, margin: '0 0 18px',
+          }}>
+            {article.title}
+          </h2>
+
+          {/* Excerpt */}
+          {article.excerpt && (
+            <p style={{
+              fontSize: '1rem', color: 'var(--text-secondary)', lineHeight: 1.75,
+              margin: '0 0 24px', fontStyle: 'italic',
+              borderInlineStart: `3.5px solid ${p.border}`,
+              paddingInlineStart: '16px',
+            }}>
+              {article.excerpt}
+            </p>
+          )}
+
+          {/* Body */}
+          {article.body && (
+            <div style={{
+              fontSize: '0.94rem', color: 'var(--text-primary)', lineHeight: 1.9,
+              whiteSpace: 'pre-wrap',
+            }}>
+              {article.body}
+            </div>
+          )}
+
+          {/* Extra images */}
+          {article.images.length > 1 && (
+            <div style={{
+              marginTop: '28px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+              gap: '10px',
+            }}>
+              {article.images.slice(1).map((img, i) => (
+                <img
+                  key={i} src={img} alt={`${article.title} ${i + 2}`}
+                  style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: '12px' }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Video */}
+          {article.videoUrl && (
+            <div style={{ marginTop: '28px' }}>
+              <video
+                src={article.videoUrl} controls
+                style={{ width: '100%', borderRadius: '14px', maxHeight: '380px', background: '#000' }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Featured card: image left, details right ─────────────────────────── */
+function FeaturedCard({ article, lang, t, visible, onClick }) {
   const [hovered, setHovered] = useState(false);
   const coverImage = article.images[0] || null;
   const p = getCategoryPalette(article.category);
 
   return (
     <article
+      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        borderRadius: '24px',
-        overflow: 'hidden',
-        background: 'white',
-        border: `1.5px solid ${hovered ? 'rgba(16,185,129,0.3)' : 'rgba(16,185,129,0.12)'}`,
+        borderRadius: '24px', overflow: 'hidden', background: 'white', cursor: 'pointer',
+        border: `1.5px solid ${hovered ? 'rgba(16,185,129,0.32)' : 'rgba(16,185,129,0.12)'}`,
         boxShadow: hovered
-          ? '0 24px 56px rgba(16,185,129,0.14), 0 8px 24px rgba(0,0,0,0.06)'
-          : '0 4px 16px rgba(0,0,0,0.05)',
+          ? '0 28px 60px rgba(16,185,129,0.15), 0 8px 24px rgba(0,0,0,0.07)'
+          : '0 4px 18px rgba(0,0,0,0.05)',
         opacity: visible ? 1 : 0,
-        transform: visible ? (hovered ? 'translateY(-6px)' : 'translateY(0)') : 'translateY(28px)',
-        transition: 'opacity 0.6s ease, transform 0.5s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.25s ease',
+        transform: visible ? (hovered ? 'translateY(-6px)' : 'translateY(0)') : 'translateY(32px)',
+        transition: 'opacity 0.65s ease, transform 0.5s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.25s ease',
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
+        minHeight: '280px',
         height: '100%',
       }}
     >
-      {/* Cover image */}
-      <div style={{ position: 'relative', paddingTop: '56.25%', background: 'var(--bg-surface-alt)', overflow: 'hidden', flexShrink: 0 }}>
+      {/* Image side */}
+      <div style={{
+        width: '42%', flexShrink: 0, position: 'relative', overflow: 'hidden',
+        background: 'linear-gradient(135deg, rgba(16,185,129,0.07), rgba(16,185,129,0.13))',
+      }}>
         {coverImage ? (
           <img
-            src={coverImage}
-            alt={article.title}
+            src={coverImage} alt={article.title}
             style={{
-              position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
-              transform: hovered ? 'scale(1.04)' : 'scale(1)',
-              transition: 'transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94)',
+              width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+              transform: hovered ? 'scale(1.05)' : 'scale(1)',
+              transition: 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)',
             }}
           />
         ) : (
           <div style={{
-            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
-            justifyContent: 'center', background: 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(16,185,129,0.12) 100%)',
+            width: '100%', height: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <Newspaper size={52} color="rgba(16,185,129,0.35)" strokeWidth={1.2} />
+            <Newspaper size={56} color="rgba(16,185,129,0.32)" strokeWidth={1.1} />
           </div>
         )}
-        {/* Gradient overlay */}
+        {/* Edge gradient so image bleeds into content nicely */}
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,0.18) 0%, transparent 55%)',
+          background: lang === 'ar'
+            ? 'linear-gradient(to left, rgba(255,255,255,0.12) 0%, transparent 70%)'
+            : 'linear-gradient(to right, rgba(255,255,255,0.12) 0%, transparent 70%)',
           pointerEvents: 'none',
         }} />
-        {/* Category badge over image */}
-        {article.category && (
-          <div style={{ position: 'absolute', top: '14px', left: '14px' }}>
-            <CategoryBadge category={article.category} />
+        {/* Video indicator */}
+        {article.videoUrl && !coverImage && (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              width: '52px', height: '52px', borderRadius: '50%',
+              background: 'rgba(16,185,129,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(16,185,129,0.4)',
+            }}>
+              <Play size={22} color="white" fill="white" />
+            </div>
           </div>
         )}
       </div>
 
-      {/* Content */}
-      <div style={{ padding: '24px 24px 22px', display: 'flex', flexDirection: 'column', flex: 1, gap: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-          <Calendar size={13} />
-          {formatDate(article.publishedAt, lang)}
+      {/* Content side */}
+      <div style={{
+        flex: 1, padding: '28px 28px 24px', display: 'flex', flexDirection: 'column',
+        gap: '11px', minWidth: 0,
+      }}>
+        {/* Meta row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {article.category && <CategoryBadge category={article.category} />}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '5px',
+            color: 'var(--text-muted)', fontSize: '0.76rem',
+          }}>
+            <Calendar size={12} />
+            {formatDate(article.publishedAt, lang)}
+          </div>
         </div>
 
+        {/* Title */}
         <h3 style={{
-          fontSize: 'clamp(1.05rem, 2vw, 1.35rem)', fontWeight: 800,
-          color: 'var(--text-primary)', lineHeight: 1.35, margin: 0,
+          fontSize: 'clamp(1.05rem, 2vw, 1.4rem)', fontWeight: 800,
+          color: 'var(--text-primary)', lineHeight: 1.3, margin: 0,
         }}>
           {article.title}
         </h3>
 
+        {/* Excerpt */}
         {article.excerpt && (
           <p style={{
-            fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.65,
-            margin: 0, display: '-webkit-box', WebkitLineClamp: 3,
+            fontSize: '0.87rem', color: 'var(--text-secondary)', lineHeight: 1.7,
+            margin: 0, flex: 1,
+            display: '-webkit-box', WebkitLineClamp: 4,
             WebkitBoxOrient: 'vertical', overflow: 'hidden',
           }}>
             {article.excerpt}
           </p>
         )}
 
-        <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
+        {/* Read more */}
+        <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
-            color: p.color, fontWeight: 700, fontSize: '0.85rem',
-            borderBottom: `1.5px solid ${p.border}`, paddingBottom: '1px',
+            color: p.color, fontWeight: 700, fontSize: '0.84rem',
+            borderBottom: `1.5px solid ${p.border}`, paddingBottom: '2px',
             transition: 'gap 0.2s',
           }}>
             {t.news.readMore}
-            <ArrowRight size={14} style={{ transform: lang === 'ar' ? 'scaleX(-1)' : 'none' }} />
+            <ArrowRight
+              size={14}
+              style={{ transform: lang === 'ar' ? 'scaleX(-1)' : 'none' }}
+            />
           </span>
         </div>
       </div>
@@ -147,58 +318,60 @@ function FeaturedCard({ article, lang, t, visible }) {
   );
 }
 
-function SmallCard({ article, lang, t, index, visible }) {
+/* ─── Side card ─────────────────────────────────────────────────────────── */
+function SmallCard({ article, lang, t, index, visible, onClick }) {
   const [hovered, setHovered] = useState(false);
   const coverImage = article.images[0] || null;
   const p = getCategoryPalette(article.category);
 
   return (
     <article
+      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         display: 'flex', gap: '14px', alignItems: 'flex-start',
-        padding: '14px', borderRadius: '18px',
-        background: hovered ? 'rgba(16,185,129,0.04)' : 'white',
-        border: `1.5px solid ${hovered ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.10)'}`,
-        boxShadow: hovered ? '0 8px 28px rgba(16,185,129,0.10), 0 2px 8px rgba(0,0,0,0.04)' : '0 2px 6px rgba(0,0,0,0.04)',
+        padding: '14px', borderRadius: '18px', cursor: 'pointer',
+        background: hovered ? 'rgba(16,185,129,0.045)' : 'white',
+        border: `1.5px solid ${hovered ? 'rgba(16,185,129,0.28)' : 'rgba(16,185,129,0.10)'}`,
+        boxShadow: hovered
+          ? '0 8px 30px rgba(16,185,129,0.11), 0 2px 8px rgba(0,0,0,0.04)'
+          : '0 2px 8px rgba(0,0,0,0.04)',
         opacity: visible ? 1 : 0,
-        transform: visible ? (hovered ? 'translateX(lang === "ar" ? 4 : -4px)' : 'translateX(0)') : 'translateY(22px)',
-        transition: `opacity 0.6s ${index * 0.1 + 0.15}s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, background 0.2s ease, border-color 0.2s ease`,
-        cursor: 'default',
+        transform: visible ? (hovered ? 'translateY(-3px)' : 'translateY(0)') : 'translateY(22px)',
+        transition: `opacity 0.6s ${index * 0.1 + 0.15}s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, background 0.2s ease, border-color 0.2s ease`,
       }}
     >
       {/* Thumbnail */}
       <div style={{
-        width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden',
-        background: 'var(--bg-surface-alt)', flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: '84px', height: '84px', borderRadius: '13px', overflow: 'hidden',
+        background: 'linear-gradient(135deg, rgba(16,185,129,0.07), rgba(16,185,129,0.14))',
+        flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {coverImage ? (
           <img
-            src={coverImage}
-            alt={article.title}
+            src={coverImage} alt={article.title}
             style={{
               width: '100%', height: '100%', objectFit: 'cover',
-              transform: hovered ? 'scale(1.06)' : 'scale(1)',
+              transform: hovered ? 'scale(1.08)' : 'scale(1)',
               transition: 'transform 0.4s ease',
             }}
           />
         ) : (
-          <FileImage size={24} color="rgba(16,185,129,0.4)" strokeWidth={1.4} />
+          <FileImage size={26} color="rgba(16,185,129,0.38)" strokeWidth={1.3} />
         )}
       </div>
 
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         {article.category && (
-          <div style={{ marginBottom: '6px' }}>
+          <div style={{ marginBottom: '7px' }}>
             <CategoryBadge category={article.category} />
           </div>
         )}
         <h3 style={{
-          fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)',
-          lineHeight: 1.35, margin: '0 0 5px',
+          fontSize: '0.91rem', fontWeight: 800, color: 'var(--text-primary)',
+          lineHeight: 1.35, margin: '0 0 6px',
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         }}>
           {article.title}
@@ -207,16 +380,23 @@ function SmallCard({ article, lang, t, index, visible }) {
           <Calendar size={11} />
           {formatDate(article.publishedAt, lang)}
         </div>
+        <div style={{ marginTop: '8px' }}>
+          <span style={{ color: p.color, fontSize: '0.76rem', fontWeight: 700 }}>
+            {t.news.readMore} →
+          </span>
+        </div>
       </div>
     </article>
   );
 }
 
+/* ─── Main section ──────────────────────────────────────────────────────── */
 export default function NewsSection({ t, lang }) {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [visible, setVisible] = useState(false);
+  const [openArticle, setOpenArticle] = useState(null);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -230,7 +410,7 @@ export default function NewsSection({ t, lang }) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
-      { threshold: 0.08 }
+      { threshold: 0.06 }
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
@@ -243,7 +423,7 @@ export default function NewsSection({ t, lang }) {
     <section
       ref={ref}
       style={{
-        padding: '88px 0 96px',
+        padding: '88px 0 100px',
         background: 'linear-gradient(180deg, #eef8f4 0%, #f8fafb 100%)',
         borderTop: '1px solid var(--border-color)',
       }}
@@ -254,7 +434,7 @@ export default function NewsSection({ t, lang }) {
           textAlign: 'center', marginBottom: '56px',
           opacity: visible ? 1 : 0,
           transform: visible ? 'translateY(0)' : 'translateY(20px)',
-          transition: 'opacity 0.6s ease, transform 0.6s ease',
+          transition: 'opacity 0.65s ease, transform 0.65s ease',
         }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '7px',
@@ -294,7 +474,7 @@ export default function NewsSection({ t, lang }) {
             {[1, 2, 3].map((k) => (
               <div key={k} style={{
                 borderRadius: '20px', height: '260px',
-                background: 'linear-gradient(90deg, rgba(16,185,129,0.06) 25%, rgba(16,185,129,0.12) 50%, rgba(16,185,129,0.06) 75%)',
+                background: 'linear-gradient(90deg, rgba(16,185,129,0.06) 25%, rgba(16,185,129,0.13) 50%, rgba(16,185,129,0.06) 75%)',
                 backgroundSize: '200% 100%',
                 animation: 'shimmer 1.6s infinite',
               }} />
@@ -323,18 +503,30 @@ export default function NewsSection({ t, lang }) {
         {!loading && !loadError && articles.length > 0 && (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: articles.length === 1 ? '1fr' : 'minmax(0,1.3fr) minmax(0,0.7fr)',
+            gridTemplateColumns: articles.length === 1 ? '1fr' : 'minmax(0,1.35fr) minmax(0,0.65fr)',
             gap: '20px',
             alignItems: 'start',
           }}>
-            {/* Featured */}
-            <FeaturedCard article={featured} lang={lang} t={t} visible={visible} />
+            <FeaturedCard
+              article={featured}
+              lang={lang}
+              t={t}
+              visible={visible}
+              onClick={() => setOpenArticle(featured)}
+            />
 
-            {/* Side cards */}
             {sideArticles.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {sideArticles.map((article, i) => (
-                  <SmallCard key={article.id} article={article} lang={lang} t={t} index={i} visible={visible} />
+                  <SmallCard
+                    key={article.id}
+                    article={article}
+                    lang={lang}
+                    t={t}
+                    index={i}
+                    visible={visible}
+                    onClick={() => setOpenArticle(article)}
+                  />
                 ))}
               </div>
             )}
@@ -342,10 +534,28 @@ export default function NewsSection({ t, lang }) {
         )}
       </div>
 
+      {/* Article modal */}
+      {openArticle && (
+        <ArticleModal
+          article={openArticle}
+          lang={lang}
+          t={t}
+          onClose={() => setOpenArticle(null)}
+        />
+      )}
+
       <style>{`
         @keyframes shimmer {
-          0% { background-position: 200% 0; }
+          0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
+        }
+        @keyframes modalFadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes modalSlideUp {
+          from { opacity: 0; transform: translateY(24px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
     </section>
