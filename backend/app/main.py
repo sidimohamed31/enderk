@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,7 @@ from .db import get_db, init_db
 settings = get_settings()
 
 app = FastAPI(title="ENDERK Projects API", version="1.0.0")
+project_router = APIRouter()
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,12 +43,12 @@ def root():
     }
 
 
-@app.get("/projects")
+@project_router.get("/projects")
 def get_projects(db: Session = Depends(get_db)):
     return {"projects": list_projects(db)}
 
 
-@app.post("/projects", status_code=201)
+@project_router.post("/projects", status_code=201)
 def create_project_endpoint(
     title: str = Form(...),
     region_id: str = Form(...),
@@ -89,7 +90,7 @@ def create_project_endpoint(
     )
 
 
-@app.put("/projects/{project_id}")
+@project_router.put("/projects/{project_id}")
 def update_project_endpoint(
     project_id: str,
     title: str = Form(...),
@@ -137,10 +138,14 @@ def update_project_endpoint(
     )
 
 
-@app.delete("/projects/{project_id}", status_code=204)
+@project_router.delete("/projects/{project_id}", status_code=204)
 def delete_project_endpoint(project_id: str, db: Session = Depends(get_db)):
     project = get_project(db, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     delete_project(db, project)
     return None
+
+
+app.include_router(project_router)
+app.include_router(project_router, prefix="/api")
