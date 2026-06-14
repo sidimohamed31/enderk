@@ -171,6 +171,19 @@ export const translations = {
         success: "تم إرسال رسالتك بنجاح! سنرد عليك في أقرب وقت ممكن."
       }
     },
+    stats: {
+      badge: 'أثر ميداني',
+      title: 'أرقام سريعة',
+      items: {
+        water:          'مستفيد من مشاريع المياه',
+        families:       'أسرة مستفيدة',
+        trees:          'شجرة مغروسة',
+        nurseries:      'مشتلة زراعية',
+        youth:          'شاباً وشابة تم تكوينهم',
+        students:       'تلميذ مستفيد من الأنشطة التوعوية',
+        municipalities: 'بلديات ومناطق تدخل',
+      }
+    },
     footer: {
       about_title: "منظمة انديرك البيئية",
       about_desc: "منظمة موريتانية مستقلة غير ربحية تسعى لدمج حماية البيئة والتنمية المجتمعية التشاركية.",
@@ -350,6 +363,19 @@ export const translations = {
         success: "Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais."
       }
     },
+    stats: {
+      badge: 'Impact Terrain',
+      title: 'Chiffres Clés',
+      items: {
+        water:          'bénéficiaires des projets eau',
+        families:       'familles bénéficiaires',
+        trees:          'arbres plantés',
+        nurseries:      'pépinières agricoles',
+        youth:          'jeunes formés',
+        students:       'élèves sensibilisés',
+        municipalities: "communes et zones d'intervention",
+      }
+    },
     footer: {
       about_title: "ONG ENDEREK",
       about_desc: "Une organisation mauritanienne indépendante unissant protection de l'environnement et développement social.",
@@ -527,6 +553,19 @@ export const translations = {
         message: "Message",
         submit: "Send Message",
         success: "Message sent successfully! We will get back to you soon."
+      }
+    },
+    stats: {
+      badge: 'Field Impact',
+      title: 'Quick Stats',
+      items: {
+        water:          'water project beneficiaries',
+        families:       'beneficiary families',
+        trees:          'trees planted',
+        nurseries:      'agricultural nurseries',
+        youth:          'youth trained',
+        students:       'students reached through awareness activities',
+        municipalities: 'municipalities & intervention zones',
       }
     },
     footer: {
