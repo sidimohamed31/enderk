@@ -88,3 +88,17 @@ class NewsMedia(Base):
 
     article: Mapped["NewsArticle"] = relationship(back_populates="media")
 
+
+class VolunteerApplication(Base):
+    __tablename__ = "volunteer_applications"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    phone: Mapped[str] = mapped_column(String(64), nullable=False)
+    region: Mapped[str] = mapped_column(String(128), nullable=False)
+    interest: Mapped[str] = mapped_column(String(255), nullable=False)
+    experience: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
+    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+

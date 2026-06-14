@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Award, User, Mail, Phone, MapPin, Briefcase, Heart, Download } from 'lucide-react';
 import logoImg from '../assets/logo.png';
+import { submitVolunteer } from '../lib/volunteerApi';
 
 export default function VolunteerForm({ t, lang }) {
   const [form, setForm] = useState({
@@ -15,6 +16,7 @@ export default function VolunteerForm({ t, lang }) {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const validate = () => {
     let tempErrors = {};
@@ -27,16 +29,20 @@ export default function VolunteerForm({ t, lang }) {
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setSubmitError('');
+    try {
+      await submitVolunteer(form);
       setIsSuccess(true);
-    }, 1500);
+    } catch (err) {
+      setSubmitError(err.message || (lang === 'ar' ? 'حدث خطأ، حاول مجدداً.' : 'Something went wrong. Please try again.'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -235,9 +241,15 @@ export default function VolunteerForm({ t, lang }) {
                   />
                 </div>
 
-                <button 
-                  type="submit" 
-                  className="btn-primary" 
+                {submitError && (
+                  <div style={{ padding: '12px 14px', borderRadius: '12px', background: 'rgba(220,38,38,0.08)', color: '#b91c1c', fontWeight: 600, fontSize: '0.88rem' }}>
+                    {submitError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="btn-primary"
                   disabled={isSubmitting}
                   style={{ marginTop: '10px' }}
                 >
@@ -267,11 +279,12 @@ export default function VolunteerForm({ t, lang }) {
                 </div>
                 
                 {/* Reset button */}
-                <button 
+                <button
                   onClick={() => {
                     setIsSuccess(false);
+                    setSubmitError('');
                     setForm({ name: '', email: '', phone: '', region: '', interest: '', experience: '' });
-                  }} 
+                  }}
                   className="btn-secondary"
                   style={{ width: 'fit-content', margin: '10px auto 0 auto' }}
                 >

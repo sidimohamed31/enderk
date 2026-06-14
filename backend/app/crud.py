@@ -477,3 +477,62 @@ def delete_news(db: Session, article: models.NewsArticle) -> None:
         delete_from_cloudinary(m.storage_path, m.kind)
     db.delete(article)
     db.commit()
+
+
+# ── Volunteer Applications ────────────────────────────────────────────────────
+
+def create_volunteer(
+    db: Session,
+    *,
+    name: str,
+    email: str,
+    phone: str,
+    region: str,
+    interest: str,
+    experience: str,
+) -> schemas.VolunteerApplicationRead:
+    application = models.VolunteerApplication(
+        name=name.strip(),
+        email=email.strip(),
+        phone=phone.strip(),
+        region=region.strip(),
+        interest=interest.strip(),
+        experience=experience.strip(),
+    )
+    db.add(application)
+    db.commit()
+    db.refresh(application)
+    return schemas.VolunteerApplicationRead.model_validate(application)
+
+
+def list_volunteers(db: Session) -> list[schemas.VolunteerApplicationRead]:
+    apps = (
+        db.query(models.VolunteerApplication)
+        .order_by(models.VolunteerApplication.submitted_at.desc())
+        .all()
+    )
+    return [schemas.VolunteerApplicationRead.model_validate(a) for a in apps]
+
+
+def get_volunteer(db: Session, volunteer_id: str) -> models.VolunteerApplication | None:
+    return (
+        db.query(models.VolunteerApplication)
+        .filter(models.VolunteerApplication.id == volunteer_id)
+        .first()
+    )
+
+
+def update_volunteer_status(
+    db: Session,
+    application: models.VolunteerApplication,
+    status: str,
+) -> schemas.VolunteerApplicationRead:
+    application.status = status
+    db.commit()
+    db.refresh(application)
+    return schemas.VolunteerApplicationRead.model_validate(application)
+
+
+def delete_volunteer(db: Session, application: models.VolunteerApplication) -> None:
+    db.delete(application)
+    db.commit()

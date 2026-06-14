@@ -71,3 +71,21 @@ class NewsRead(BaseModel):
     images: list[str]
     video_url: str | None
 
+
+class VolunteerApplicationRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    email: str
+    phone: str
+    region: str
+    interest: str
+    experience: str
+    status: str
+    submitted_at: datetime
+
+
+class StatusUpdate(BaseModel):
+    status: str
+

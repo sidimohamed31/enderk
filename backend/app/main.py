@@ -10,15 +10,21 @@ from .config import get_settings
 from .crud import (
     create_news,
     create_project,
+    create_volunteer,
     delete_news,
     delete_project,
+    delete_volunteer,
     get_news_article,
     get_project,
+    get_volunteer,
     list_news,
     list_projects,
+    list_volunteers,
     update_news,
     update_project,
+    update_volunteer_status,
 )
+from .schemas import StatusUpdate
 from .db import get_db, init_db
 
 settings = get_settings()
@@ -266,3 +272,57 @@ def delete_news_endpoint(article_id: str, db: Session = Depends(get_db)):
 
 app.include_router(news_router)
 app.include_router(news_router, prefix="/api")
+
+
+volunteer_router = APIRouter()
+
+
+@volunteer_router.post("/volunteers", status_code=201)
+def create_volunteer_endpoint(
+    name: str = Form(...),
+    email: str = Form(...),
+    phone: str = Form(...),
+    region: str = Form(...),
+    interest: str = Form(...),
+    experience: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    return create_volunteer(
+        db,
+        name=name,
+        email=email,
+        phone=phone,
+        region=region,
+        interest=interest,
+        experience=experience,
+    )
+
+
+@volunteer_router.get("/volunteers")
+def list_volunteers_endpoint(db: Session = Depends(get_db)):
+    return {"volunteers": list_volunteers(db)}
+
+
+@volunteer_router.patch("/volunteers/{volunteer_id}/status")
+def update_volunteer_status_endpoint(
+    volunteer_id: str,
+    body: StatusUpdate,
+    db: Session = Depends(get_db),
+):
+    application = get_volunteer(db, volunteer_id)
+    if not application:
+        raise HTTPException(status_code=404, detail="Volunteer application not found")
+    return update_volunteer_status(db, application, body.status)
+
+
+@volunteer_router.delete("/volunteers/{volunteer_id}", status_code=204)
+def delete_volunteer_endpoint(volunteer_id: str, db: Session = Depends(get_db)):
+    application = get_volunteer(db, volunteer_id)
+    if not application:
+        raise HTTPException(status_code=404, detail="Volunteer application not found")
+    delete_volunteer(db, application)
+    return None
+
+
+app.include_router(volunteer_router)
+app.include_router(volunteer_router, prefix="/api")

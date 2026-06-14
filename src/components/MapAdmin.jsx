@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft, Calendar, Eye, FileImage, Globe,
-  Newspaper, PencilLine, Plus, Save, Trash2, Video,
+  Newspaper, PencilLine, Plus, Save, Trash2, Video, Users, MessageCircle, CheckCircle, Clock,
 } from 'lucide-react';
 import { createProject, deleteProject, fetchProjects, updateProject } from '../lib/projectsApi';
 import { createNews, deleteNews, fetchNews, updateNews } from '../lib/newsApi';
+import { fetchVolunteers, markVolunteerContacted, deleteVolunteer as deleteVolunteerApi } from '../lib/volunteerApi';
 import { getRegionLabel, mouqataasData, regionPins } from '../data/projectsData';
 
 // ── Empty forms ───────────────────────────────────────────────────────────────
@@ -101,6 +102,20 @@ const adminCopy = {
     newsSaved: 'تم نشر الخبر بنجاح.',
     newsRemoved: 'تم حذف الخبر.',
     newsRequiredFields: 'عنوان الخبر مطلوب.',
+    // Volunteers
+    volunteersTab: 'المتطوعون',
+    volunteersTitle: 'طلبات التطوع',
+    volunteersCount: 'طلب وارد',
+    volunteersEmpty: 'لا توجد طلبات تطوع بعد.',
+    whatsappBtn: 'واتساب',
+    markContacted: 'تم التواصل',
+    statusPending: 'جديد',
+    statusContacted: 'تم التواصل',
+    volunteerRegion: 'المنطقة',
+    volunteerInterest: 'مجال الاهتمام',
+    volunteerExperience: 'الخبرة',
+    volunteerDate: 'تاريخ التقديم',
+    whatsappMessage: (name) => `مرحباً ${name}، شكراً على تسجيلك كمتطوع في منظمة انديرك البيئية. يسعدنا التواصل معك!`,
   },
   fr: {
     adminTag: 'Administration',
@@ -169,6 +184,20 @@ const adminCopy = {
     newsSaved: 'Actualité publiée avec succès.',
     newsRemoved: 'Actualité supprimée.',
     newsRequiredFields: 'Le titre est obligatoire.',
+    // Volunteers
+    volunteersTab: 'Bénévoles',
+    volunteersTitle: 'Demandes de bénévolat',
+    volunteersCount: 'demande reçue',
+    volunteersEmpty: 'Aucune demande de bénévolat pour le moment.',
+    whatsappBtn: 'WhatsApp',
+    markContacted: 'Contacté',
+    statusPending: 'Nouveau',
+    statusContacted: 'Contacté',
+    volunteerRegion: 'Région',
+    volunteerInterest: 'Domaine d\'intérêt',
+    volunteerExperience: 'Expérience',
+    volunteerDate: 'Date de candidature',
+    whatsappMessage: (name) => `Bonjour ${name}, merci pour votre inscription comme bénévole chez ENDERK. Nous sommes ravis de prendre contact avec vous !`,
   },
   en: {
     adminTag: 'Admin',
@@ -237,6 +266,20 @@ const adminCopy = {
     newsSaved: 'Article published successfully.',
     newsRemoved: 'Article removed.',
     newsRequiredFields: 'Article title is required.',
+    // Volunteers
+    volunteersTab: 'Volunteers',
+    volunteersTitle: 'Volunteer Applications',
+    volunteersCount: 'application received',
+    volunteersEmpty: 'No volunteer applications yet.',
+    whatsappBtn: 'WhatsApp',
+    markContacted: 'Mark contacted',
+    statusPending: 'New',
+    statusContacted: 'Contacted',
+    volunteerRegion: 'Region',
+    volunteerInterest: 'Area of interest',
+    volunteerExperience: 'Experience',
+    volunteerDate: 'Submitted',
+    whatsappMessage: (name) => `Hello ${name}, thank you for registering as a volunteer with ENDERK Environmental NGO. We're happy to reach out!`,
   },
 };
 
@@ -286,6 +329,10 @@ export default function MapAdmin() {
   const [newsNotice, setNewsNotice] = useState('');
   const [newsError, setNewsError] = useState('');
 
+  // Volunteers state
+  const [volunteers, setVolunteers] = useState([]);
+  const [volunteersLoading, setVolunteersLoading] = useState(true);
+
   const ui = adminCopy[lang] || adminCopy.en;
   const editingProject = useMemo(
     () => projects.find((p) => p.id === form.id) || null,
@@ -328,16 +375,17 @@ export default function MapAdmin() {
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([fetchProjects(), fetchNews()])
-      .then(([projs, arts]) => {
+    Promise.all([fetchProjects(), fetchNews(), fetchVolunteers()])
+      .then(([projs, arts, vols]) => {
         if (mounted) {
           setProjects(projs);
           setNewsArticles(arts);
+          setVolunteers(vols);
         }
       })
       .catch(() => {})
       .finally(() => {
-        if (mounted) { setIsLoading(false); setNewsLoading(false); }
+        if (mounted) { setIsLoading(false); setNewsLoading(false); setVolunteersLoading(false); }
       });
     return () => { mounted = false; };
   }, []);
@@ -480,6 +528,28 @@ export default function MapAdmin() {
     }
   };
 
+  // ── Volunteer actions ────────────────────────────────────────────────────────
+
+  const handleMarkContacted = async (volunteerId) => {
+    try {
+      const updated = await markVolunteerContacted(volunteerId);
+      setVolunteers((prev) => prev.map((v) => (v.id === volunteerId ? updated : v)));
+    } catch {}
+  };
+
+  const handleDeleteVolunteer = async (volunteerId) => {
+    try {
+      await deleteVolunteerApi(volunteerId);
+      setVolunteers((prev) => prev.filter((v) => v.id !== volunteerId));
+    } catch {}
+  };
+
+  const openWhatsApp = (volunteer) => {
+    const digits = volunteer.phone.replace(/\D/g, '');
+    const message = ui.whatsappMessage(volunteer.name);
+    window.open(`https://wa.me/${digits}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   const selectedVideoLabel = videoFile ? `${ui.selectedVideo}: ${videoFile.name}` : '';
@@ -553,6 +623,19 @@ export default function MapAdmin() {
           <button type="button" onClick={() => setActiveTab('news')} style={tabBtnStyle(activeTab === 'news')}>
             <Newspaper size={15} />
             {ui.newsTab}
+          </button>
+          <button type="button" onClick={() => setActiveTab('volunteers')} style={tabBtnStyle(activeTab === 'volunteers')}>
+            <Users size={15} />
+            {ui.volunteersTab}
+            {volunteers.filter((v) => v.status === 'pending').length > 0 && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: '18px', height: '18px', borderRadius: '50%',
+                background: '#ef4444', color: 'white', fontSize: '0.65rem', fontWeight: 800,
+              }}>
+                {volunteers.filter((v) => v.status === 'pending').length}
+              </span>
+            )}
           </button>
         </div>
 
@@ -928,6 +1011,158 @@ export default function MapAdmin() {
                 </div>
               )}
             </aside>
+          </div>
+        )}
+
+        {/* ── VOLUNTEERS TAB ────────────────────────────────────────────────── */}
+        {activeTab === 'volunteers' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{ui.volunteersTitle}</h2>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  {volunteers.length} {ui.volunteersCount}
+                </p>
+              </div>
+              <Users size={22} color="var(--emerald-600)" />
+            </div>
+
+            {volunteersLoading ? (
+              <div style={{ color: 'var(--text-secondary)' }}>{ui.saving}</div>
+            ) : volunteers.length === 0 ? (
+              <div style={{ padding: '32px', borderRadius: '18px', border: '1px dashed rgba(16,185,129,0.24)', color: 'var(--text-secondary)', background: 'rgba(16,185,129,0.04)', textAlign: 'center' }}>
+                {ui.volunteersEmpty}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
+                {volunteers.map((vol) => {
+                  const isContacted = vol.status === 'contacted';
+                  const initials = vol.name.trim().split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+                  return (
+                    <article key={vol.id} style={{
+                      padding: '20px', borderRadius: '20px', background: 'white',
+                      border: `1px solid ${isContacted ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.18)'}`,
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.05)', display: 'grid', gap: '14px',
+                    }}>
+                      {/* Header row */}
+                      <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                        {/* Avatar */}
+                        <div style={{
+                          width: '48px', height: '48px', borderRadius: '14px', flexShrink: 0,
+                          background: isContacted ? 'rgba(16,185,129,0.12)' : 'rgba(59,130,246,0.10)',
+                          color: isContacted ? 'var(--emerald-700)' : '#3b82f6',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 800, fontSize: '1rem', letterSpacing: '0.5px',
+                        }}>
+                          {initials}
+                        </div>
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
+                            <h3 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{vol.name}</h3>
+                            <span style={{
+                              padding: '3px 10px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800,
+                              background: isContacted ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.08)',
+                              color: isContacted ? 'var(--emerald-700)' : '#dc2626',
+                              border: `1px solid ${isContacted ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.2)'}`,
+                              whiteSpace: 'nowrap', flexShrink: 0,
+                            }}>
+                              {isContacted ? (
+                                <><CheckCircle size={10} style={{ display: 'inline', marginInlineEnd: '3px' }} />{ui.statusContacted}</>
+                              ) : (
+                                <><Clock size={10} style={{ display: 'inline', marginInlineEnd: '3px' }} />{ui.statusPending}</>
+                              )}
+                            </span>
+                          </div>
+                          <a href={`mailto:${vol.email}`} style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px', display: 'block', textDecoration: 'none' }}>
+                            {vol.email}
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Info grid */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div style={{ padding: '10px 12px', borderRadius: '12px', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.1)' }}>
+                          <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                            {ui.volunteerRegion}
+                          </div>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{vol.region}</div>
+                        </div>
+                        <div style={{ padding: '10px 12px', borderRadius: '12px', background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.1)' }}>
+                          <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                            {ui.volunteerDate}
+                          </div>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>
+                            {new Date(vol.submittedAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ padding: '10px 12px', borderRadius: '12px', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.1)' }}>
+                        <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                          {ui.volunteerInterest}
+                        </div>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{vol.interest}</div>
+                      </div>
+
+                      {vol.experience && (
+                        <div style={{ padding: '10px 12px', borderRadius: '12px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                          <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                            {ui.volunteerExperience}
+                          </div>
+                          <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {vol.experience}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => openWhatsApp(vol)}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '6px',
+                            padding: '9px 14px', borderRadius: '12px', border: 'none',
+                            background: '#25d366', color: 'white', fontWeight: 700, cursor: 'pointer',
+                            fontSize: '0.88rem',
+                          }}
+                        >
+                          <MessageCircle size={15} />
+                          {ui.whatsappBtn}
+                          <span style={{ opacity: 0.85, fontWeight: 400 }}>{vol.phone}</span>
+                        </button>
+
+                        {!isContacted && (
+                          <button
+                            type="button"
+                            onClick={() => handleMarkContacted(vol.id)}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '6px',
+                              padding: '9px 14px', borderRadius: '12px',
+                              border: '1px solid rgba(16,185,129,0.25)',
+                              background: 'rgba(16,185,129,0.07)', color: 'var(--emerald-700)',
+                              fontWeight: 700, cursor: 'pointer', fontSize: '0.88rem',
+                            }}
+                          >
+                            <CheckCircle size={15} />
+                            {ui.markContacted}
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteVolunteer(vol.id)}
+                          style={deleteBtn}
+                        >
+                          <Trash2 size={15} />{ui.delete}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
