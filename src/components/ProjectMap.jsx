@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Calendar, CheckCircle, Film, Image as ImageIcon, Info, MapPin, X } from 'lucide-react';
-import { fetchProjects } from '../lib/projectsApi';
+import { fetchProjects, peekProjectsCache } from '../lib/projectsApi';
 import { getRegionLabel, groupProjectsByRegion } from '../data/projectsData';
 
 // Real Mauritania outline path from simplemaps.com (CC-licensed)
@@ -33,23 +33,29 @@ export default function ProjectMap({ t, lang }) {
   useEffect(() => {
     let isMounted = true;
 
-    const load = async () => {
-      try {
-        const data = await fetchProjects();
+    // Serve stale data instantly — no spinner on repeat visits
+    const stale = peekProjectsCache();
+    if (stale) {
+      setProjects(stale);
+      setSelectedProjectId(stale[0]?.id || null);
+      setIsLoading(false);
+    }
+
+    // Always fetch fresh in background
+    fetchProjects()
+      .then((data) => {
         if (!isMounted) return;
         setProjects(data);
-        setSelectedProjectId((currentId) => currentId || data[0]?.id || null);
-      } catch (err) {
+        setSelectedProjectId((id) => id || data[0]?.id || null);
+        setIsLoading(false);
+      })
+      .catch((err) => {
         if (!isMounted) return;
-        setError(err instanceof Error ? err.message : 'Failed to load projects');
-      } finally {
-        if (isMounted) {
+        if (!stale) {
+          setError(err instanceof Error ? err.message : 'Failed to load projects');
           setIsLoading(false);
         }
-      }
-    };
-
-    load();
+      });
 
     return () => {
       isMounted = false;

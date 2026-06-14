@@ -12,6 +12,7 @@ import DonatePortal from './components/DonatePortal';
 import Contact from './components/Contact';
 import MapAdmin from './components/MapAdmin';
 import NewsDetail from './components/NewsDetail';
+import { getApiBaseUrl } from './lib/projectsApi';
 import { translations } from './data/translations';
 
 function App() {
@@ -24,6 +25,15 @@ function App() {
     document.documentElement.lang = lang;
     document.documentElement.style.colorScheme = 'light';
   }, [lang]);
+
+  // Keep the Render.com backend warm — ping /health immediately on load,
+  // then every 14 minutes so it never hits the 15-minute sleep threshold.
+  useEffect(() => {
+    const url = `${getApiBaseUrl()}/health`;
+    fetch(url).catch(() => {});
+    const timer = setInterval(() => fetch(url).catch(() => {}), 14 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <Routes>

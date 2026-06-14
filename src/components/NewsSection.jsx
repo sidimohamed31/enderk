@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar, FileImage, Newspaper, Tag } from 'lucide-react';
-import { fetchNews } from '../lib/newsApi';
+import { fetchNews, peekNewsCache } from '../lib/newsApi';
 
 const CATEGORY_PALETTE = {
   default: { bg: 'rgba(16,185,129,0.10)', color: '#047857', border: 'rgba(16,185,129,0.22)' },
@@ -251,11 +251,22 @@ export default function NewsSection({ t, lang }) {
 
   useEffect(() => {
     let mounted = true;
+
+    // Serve stale data instantly — eliminates the shimmer skeleton on repeat visits
+    const stale = peekNewsCache();
+    if (stale) {
+      setArticles(stale);
+      setLoading(false);
+    }
+
+    // Always fetch fresh in background; update UI when it arrives
     fetchNews()
       .then((data) => { if (mounted) { setArticles(data); setLoading(false); } })
-      .catch(() => { if (mounted) { setLoadError(t.news.loadError); setLoading(false); } });
+      .catch(() => { if (mounted && !stale) { setLoadError(t.news.loadError); setLoading(false); } });
+
     return () => { mounted = false; };
-  }, [t.news.loadError]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

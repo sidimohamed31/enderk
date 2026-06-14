@@ -1,3 +1,5 @@
+import { burstCache, peekCache, writeCache } from './apiCache';
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -68,9 +70,17 @@ export function normalizeProject(project) {
   };
 }
 
+// Read the cache without triggering any network request.
+// Components call this first to render stale data instantly.
+export function peekProjectsCache() {
+  return peekCache('projects');
+}
+
 export async function fetchProjects() {
   const data = await request('/projects');
-  return (data?.projects || []).map(normalizeProject);
+  const projects = (data?.projects || []).map(normalizeProject);
+  writeCache('projects', projects);
+  return projects;
 }
 
 function appendField(formData, key, value) {
@@ -112,6 +122,7 @@ export async function createProject(payload, imageFiles = [], videoFile = null) 
     method: 'POST',
     body: buildProjectFormData(payload, imageFiles, videoFile),
   });
+  burstCache('projects'); // force public pages to re-fetch
   return normalizeProject(data);
 }
 
@@ -120,6 +131,7 @@ export async function updateProject(projectId, payload, imageFiles = [], videoFi
     method: 'PUT',
     body: buildProjectFormData(payload, imageFiles, videoFile),
   });
+  burstCache('projects');
   return normalizeProject(data);
 }
 
@@ -127,6 +139,7 @@ export async function deleteProject(projectId) {
   await request(`/projects/${projectId}`, {
     method: 'DELETE',
   });
+  burstCache('projects');
 }
 
 export function getApiBaseUrl() {

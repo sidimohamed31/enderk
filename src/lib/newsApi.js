@@ -1,3 +1,5 @@
+import { burstCache, peekCache, writeCache } from './apiCache';
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -66,9 +68,17 @@ export function normalizeArticle(article) {
   };
 }
 
+// Read the cache without triggering any network request.
+// Components call this first to render stale data instantly.
+export function peekNewsCache() {
+  return peekCache('news');
+}
+
 export async function fetchNews() {
   const data = await request('/news');
-  return (data?.news || []).map(normalizeArticle);
+  const articles = (data?.news || []).map(normalizeArticle);
+  writeCache('news', articles);
+  return articles;
 }
 
 export async function fetchNewsArticle(articleId) {
@@ -94,6 +104,7 @@ export async function createNews(payload, imageFiles = [], videoFile = null) {
     method: 'POST',
     body: buildNewsFormData(payload, imageFiles, videoFile),
   });
+  burstCache('news'); // force public pages to re-fetch
   return normalizeArticle(data);
 }
 
@@ -102,9 +113,11 @@ export async function updateNews(articleId, payload, imageFiles = [], videoFile 
     method: 'PUT',
     body: buildNewsFormData(payload, imageFiles, videoFile),
   });
+  burstCache('news');
   return normalizeArticle(data);
 }
 
 export async function deleteNews(articleId) {
   await request(`/news/${articleId}`, { method: 'DELETE' });
+  burstCache('news');
 }
