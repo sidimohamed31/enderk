@@ -190,7 +190,12 @@ export default function MapAdmin() {
         }
       } catch (err) {
         if (isMounted) {
-          setError(err instanceof Error ? err.message : ui.errorDefault);
+          const message = err instanceof Error ? err.message : ui.errorDefault;
+          if (!message.includes('404') && !message.toLowerCase().includes('not found')) {
+            setError(message);
+          } else {
+            setProjects([]);
+          }
         }
       } finally {
         if (isMounted) {

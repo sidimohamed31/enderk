@@ -23,8 +23,9 @@ async function request(path, options = {}) {
   const data = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    const message = data?.detail || data?.message || `Request failed with status ${response.status}`;
-    throw new Error(message);
+    const message =
+      data?.detail || data?.message || `Request failed with status ${response.status}`;
+    throw new Error(`${message} (${response.url})`);
   }
 
   return data;
