@@ -64,6 +64,7 @@ function FeaturedCard({ article, lang, t, visible }) {
       style={{ textDecoration: 'none', display: 'block', height: '100%' }}
     >
       <article
+        className="news-featured"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
@@ -83,7 +84,7 @@ function FeaturedCard({ article, lang, t, visible }) {
         }}
       >
         {/* Image side — uses grid cell height so absolute fill is reliable */}
-        <div style={{
+        <div className="news-featured-media" style={{
           position: 'relative', overflow: 'hidden',
           background: 'linear-gradient(135deg, rgba(16,185,129,0.07), rgba(16,185,129,0.14))',
         }}>
@@ -365,7 +366,7 @@ export default function NewsSection({ t, lang }) {
 
         {/* Content grid */}
         {!loading && !loadError && articles.length > 0 && (
-          <div style={{
+          <div className="news-grid" style={{
             display: 'grid',
             gridTemplateColumns: articles.length === 1 ? '1fr' : 'minmax(0,1.35fr) minmax(0,0.65fr)',
             gap: '20px',

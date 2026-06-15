@@ -29,8 +29,9 @@ export default function Hero({ t, lang }) {
   };
 
   return (
-    <section 
-      id="home" 
+    <section
+      id="home"
+      className="hero-section"
       style={{
         position: 'relative',
         height: '90vh',
@@ -145,20 +146,21 @@ export default function Hero({ t, lang }) {
           </p>
 
           {/* Action Buttons */}
-          <div 
-            className="animate-fade-in-up"
+          <div
+            className="animate-fade-in-up hero-actions"
             style={{
               display: 'flex',
               flexWrap: 'wrap',
               gap: '16px'
             }}
           >
-            <button 
+            <button
               onClick={() => navigate('/volunteer')}
-              className="btn-primary" 
+              className="btn-primary hero-cta"
               style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '10px',
                 fontSize: '1.05rem',
                 padding: '14px 28px'
@@ -167,13 +169,14 @@ export default function Hero({ t, lang }) {
               <Users size={20} />
               <span>{t.hero.cta_volunteer}</span>
             </button>
-            
-            <button 
+
+            <button
               onClick={() => navigate('/donate')}
-              className="btn-secondary" 
+              className="btn-secondary hero-cta"
               style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '10px',
                 fontSize: '1.05rem',
                 padding: '12px 26px',

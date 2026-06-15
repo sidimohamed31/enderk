@@ -308,3 +308,129 @@ img { max-width: 100%; display: block; }
 /* ── Utility: Section BG Variants ───────────────────── */
 .bg-alt   { background: var(--bg-surface-alt); }
 .bg-tint  { background: var(--bg-surface-deep); }
+
+/* =====================================================
+   REFINEMENT & RESPONSIVE LAYER
+   Mobile-first polish for the whole ENDERK experience.
+   ===================================================== */
+
+/* ── Global craftsmanship touches ─────────────────────── */
+/* Balanced, elegant line breaks on headings */
+h1, h2, h3, h4 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
+
+/* Anchored sections clear the sticky header when navigated to */
+section[id] { scroll-margin-top: 96px; }
+
+/* Refined, accessible keyboard focus */
+:focus-visible {
+  outline: 2px solid var(--emerald-500);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+/* Mouse users keep the clean look */
+:focus:not(:focus-visible) { outline: none; }
+
+/* Branded text selection */
+::selection {
+  background: rgba(16, 185, 129, 0.22);
+  color: var(--text-primary);
+}
+
+/* Never allow a stray element to break the viewport horizontally */
+html, body { max-width: 100%; overflow-x: hidden; }
+
+/* Media never overflows its container, and is crisp */
+img, svg, video, iframe { max-width: 100%; }
+
+/* Honour users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Navbar mobile panel entrance ─────────────────────── */
+@keyframes navPanelIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.mobile-panel { animation: navPanelIn 0.26s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: top; }
+
+/* =====================================================
+   TABLET  ≤ 992px
+   ===================================================== */
+@media (max-width: 992px) {
+  main > section:not(#home) {
+    padding-top: 72px !important;
+    padding-bottom: 76px !important;
+  }
+}
+
+/* =====================================================
+   MOBILE  ≤ 768px
+   ===================================================== */
+@media (max-width: 768px) {
+  .container { padding-left: 18px; padding-right: 18px; }
+
+  /* Calmer vertical rhythm on phones */
+  main > section:not(#home) {
+    padding-top: 56px !important;
+    padding-bottom: 62px !important;
+  }
+  section[id] { scroll-margin-top: 74px; }
+
+  /* Premium panels stay generous but not bulky */
+  .glass-panel { padding: 22px !important; border-radius: 18px !important; }
+
+  /* Comfortable, thumb-friendly tap targets */
+  .btn-primary, .btn-secondary { min-height: 48px; padding-top: 12px; padding-bottom: 12px; }
+
+  /* Collapse the hard two-column layouts to a single column */
+  .news-grid,
+  .news-featured,
+  .map-split { grid-template-columns: 1fr !important; }
+
+  /* When the featured news card stacks, give its image a real height */
+  .news-featured-media { height: 210px !important; }
+
+  /* Map canvas needn't be so tall on a phone */
+  .map-canvas { min-height: 340px !important; padding: 16px !important; }
+
+  /* ── Navbar compaction ── */
+  .nav-inner  { height: 66px !important; }
+  .nav-logo   { width: 44px !important; height: 44px !important; }
+  .mobile-panel { top: 66px !important; left: 14px !important; right: 14px !important; }
+
+  /* ── Hero on phones: snug height, full-width CTAs ── */
+  .hero-section { height: auto !important; min-height: 88vh !important; }
+  .hero-actions { width: 100%; gap: 12px !important; }
+  .hero-cta     { width: 100%; }
+}
+
+/* =====================================================
+   SMALL PHONES  ≤ 480px
+   ===================================================== */
+@media (max-width: 480px) {
+  .container { padding-left: 16px; padding-right: 16px; }
+
+  main > section:not(#home) {
+    padding-top: 48px !important;
+    padding-bottom: 54px !important;
+  }
+  .glass-panel { padding: 18px !important; }
+
+  /* Paired form fields stack for breathing room */
+  .dual { grid-template-columns: 1fr !important; }
+
+  /* Trim the navbar to the essentials */
+  .nav-inner    { height: 60px !important; }
+  .mobile-panel { top: 60px !important; }
+  .brand-sub    { display: none !important; }
+  .lang-name    { display: none !important; }
+  .donate-label { display: none !important; }
+  .donate-cta   { padding: 10px 12px !important; }
+}

@@ -162,7 +162,7 @@ export default function Contact({ t, lang }) {
           <div className="glass-panel" style={{ padding: '36px', borderRadius: '24px' }}>
             {!isSuccess ? (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="dual" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
                     <label className="form-label">{lang === 'ar' ? 'الاسم' : 'Name'}</label>
                     <input 

@@ -175,6 +175,7 @@ export default function ProjectMap({ t, lang }) {
           </div>
         ) : (
           <div
+            className="map-split"
             style={{
               display: 'grid',
               gridTemplateColumns: 'minmax(320px, 0.9fr) minmax(320px, 1.1fr)',
@@ -292,7 +293,7 @@ export default function ProjectMap({ t, lang }) {
 
             <div style={{ display: 'grid', gap: '20px' }}>
               <div
-                className="glass-panel"
+                className="glass-panel map-canvas"
                 style={{
                   padding: '22px',
                   display: 'flex',

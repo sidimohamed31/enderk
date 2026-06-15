@@ -59,7 +59,7 @@ export default function Navbar({ lang, setLang, t }) {
       boxShadow: '0 1px 16px rgba(0,0,0,0.06)',
       width: '100%',
     }}>
-      <div className="container" style={{
+      <div className="container nav-inner" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -67,12 +67,13 @@ export default function Navbar({ lang, setLang, t }) {
         position: 'relative'
       }}>
         {/* LOGO */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => handleNavClick('home')}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', minWidth: 0 }} onClick={() => handleNavClick('home')}>
           {/* Logo SVG Graphic as Masterpiece Fallback + Text */}
-          <img 
-            src={logoImg} 
-            alt="ENDERK Logo" 
-            style={{ width: '54px', height: '54px', objectFit: 'contain' }} 
+          <img
+            src={logoImg}
+            alt="ENDERK Logo"
+            className="nav-logo"
+            style={{ width: '54px', height: '54px', objectFit: 'contain', flexShrink: 0 }}
           />
           
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -87,9 +88,9 @@ export default function Navbar({ lang, setLang, t }) {
             }}>
               {lang === 'ar' ? 'انديرك' : 'ENDERK'}
             </span>
-            <span style={{ 
-              fontSize: '0.65rem', 
-              color: 'var(--text-secondary)', 
+            <span className="brand-sub" style={{
+              fontSize: '0.65rem',
+              color: 'var(--text-secondary)',
               marginTop: '-4px',
               fontWeight: 500,
               letterSpacing: '1px'
@@ -137,19 +138,19 @@ export default function Navbar({ lang, setLang, t }) {
         {/* ACTIONS */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {/* DONATE CTA */}
-          <button 
+          <button
             onClick={() => { setIsOpen(false); navigate('/donate'); }}
-            className="btn-primary" 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
+            className="btn-primary donate-cta"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
               padding: '10px 18px',
               fontSize: '0.9rem'
             }}
           >
             <Heart size={16} fill="white" />
-            <span>{t.nav.donate}</span>
+            <span className="donate-label">{t.nav.donate}</span>
           </button>
 
 
@@ -173,7 +174,7 @@ export default function Navbar({ lang, setLang, t }) {
               }}
             >
               <Globe size={16} />
-              <span>{languages.find(l => l.code === lang).name}</span>
+              <span className="lang-name">{languages.find(l => l.code === lang).name}</span>
             </button>
 
             {langDropdownOpen && (
@@ -245,7 +246,8 @@ export default function Navbar({ lang, setLang, t }) {
 
       {/* MOBILE NAV PANEL */}
       {isOpen && (
-        <div 
+        <div
+          className="mobile-panel"
           style={{
             position: 'absolute',
             top: '80px',
@@ -257,8 +259,10 @@ export default function Navbar({ lang, setLang, t }) {
             gap: '8px',
             borderRadius: '20px',
             background: 'rgba(255,255,255,0.97)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(16,185,129,0.12)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
             zIndex: 99
           }}
         >
