@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft, Calendar, Eye, FileImage, Globe,
-  Newspaper, PencilLine, Plus, Save, Trash2, Video, Users, MessageCircle, CheckCircle, Clock,
+  Newspaper, PencilLine, Plus, Save, Trash2, Video, Users, MessageCircle, CheckCircle, Clock, Download,
 } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 import { createProject, deleteProject, fetchProjects, updateProject } from '../lib/projectsApi';
 import { createNews, deleteNews, fetchNews, updateNews } from '../lib/newsApi';
 import { fetchVolunteers, markVolunteerContacted, deleteVolunteer as deleteVolunteerApi } from '../lib/volunteerApi';
@@ -555,6 +556,164 @@ export default function MapAdmin() {
       await deleteVolunteerApi(volunteerId);
       setVolunteers((prev) => prev.filter((v) => v.id !== volunteerId));
     } catch {}
+  };
+
+  const downloadVolunteerCard = (vol) => {
+    const W = 520, H = 330, S = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = W * S;
+    canvas.height = H * S;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(S, S);
+
+    const rRect = (x, y, w, h, r) => {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.arcTo(x + w, y, x + w, y + r, r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+      ctx.lineTo(x + r, y + h);
+      ctx.arcTo(x, y + h, x, y + h - r, r);
+      ctx.lineTo(x, y + r);
+      ctx.arcTo(x, y, x + r, y, r);
+      ctx.closePath();
+    };
+
+    const render = (logo) => {
+      // Background
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, '#0f2233');
+      bg.addColorStop(1, '#0a1628');
+      ctx.fillStyle = bg;
+      rRect(0, 0, W, H, 20);
+      ctx.fill();
+
+      // Overlay tint
+      const tint = ctx.createLinearGradient(0, 0, W * 0.6, H);
+      tint.addColorStop(0, 'rgba(22,160,133,0.10)');
+      tint.addColorStop(1, 'rgba(15,76,129,0.10)');
+      ctx.fillStyle = tint;
+      rRect(2, 2, W - 4, H - 4, 18);
+      ctx.fill();
+
+      // Green border
+      ctx.strokeStyle = '#16a085';
+      ctx.lineWidth = 2;
+      rRect(1, 1, W - 2, H - 2, 19);
+      ctx.stroke();
+
+      // Logo
+      if (logo) ctx.drawImage(logo, 30, 30, 28, 28);
+
+      // Org name
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText('ENDERK', 66, 46);
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.font = '9px sans-serif';
+      ctx.fillText('ENVIRONMENTAL NGO', 66, 60);
+
+      // Status badge
+      const isContacted = vol.status === 'contacted';
+      const badgeLabel = isContacted ? 'Contacted' : 'Active Volunteer';
+      const badgeColor = '#00e699';
+      const badgeW = 130, badgeH = 24, badgeX = W - badgeW - 28;
+      ctx.fillStyle = 'rgba(0,230,153,0.15)';
+      rRect(badgeX, 31, badgeW, badgeH, 8);
+      ctx.fill();
+      ctx.strokeStyle = badgeColor;
+      ctx.lineWidth = 1;
+      rRect(badgeX, 31, badgeW, badgeH, 8);
+      ctx.stroke();
+      ctx.fillStyle = badgeColor;
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(badgeLabel, badgeX + badgeW / 2, 47);
+      ctx.textAlign = 'left';
+
+      // Header divider
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(30, 82); ctx.lineTo(W - 30, 82); ctx.stroke();
+
+      // Avatar box
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      rRect(30, 100, 68, 68, 14);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.lineWidth = 1;
+      rRect(30, 100, 68, 68, 14);
+      ctx.stroke();
+      // Initials
+      const initials = vol.name.trim().split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+      ctx.fillStyle = '#16a085';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(initials, 64, 142);
+      ctx.textAlign = 'left';
+
+      // Name
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText(vol.name, 116, 130);
+
+      // Interest
+      ctx.fillStyle = '#16a085';
+      ctx.font = '13px sans-serif';
+      ctx.fillText(vol.interest, 116, 152);
+
+      // Email (small)
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(vol.email, 116, 170);
+
+      // Footer divider
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(30, 198); ctx.lineTo(W - 30, 198); ctx.stroke();
+
+      // Volunteer ID
+      const phoneDigits = (vol.phone || '0000').replace(/\D/g, '').slice(-4);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = '8px sans-serif';
+      ctx.fillText('VOLUNTEER ID', 30, 222);
+      ctx.fillStyle = '#e0e0e0';
+      ctx.font = 'bold 14px monospace';
+      ctx.fillText(`ED-${phoneDigits}-2026`, 30, 242);
+
+      // Location
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('LOCATION', W - 30, 222);
+      ctx.fillStyle = '#e0e0e0';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText(vol.region || 'Mauritania', W - 30, 242);
+      ctx.textAlign = 'left';
+
+      // Submitted date
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Submitted: ${new Date(vol.submittedAt).toLocaleDateString()}`, W / 2, 270);
+
+      // Website
+      ctx.fillStyle = 'rgba(22,160,133,0.7)';
+      ctx.font = '10px sans-serif';
+      ctx.fillText('www.enderek.org', W / 2, 290);
+
+      // Trigger download
+      const link = document.createElement('a');
+      link.download = `volunteer-card-${vol.name.replace(/\s+/g, '-')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+
+    const img = new Image();
+    img.onload = () => render(img);
+    img.onerror = () => render(null);
+    img.src = logoImg;
   };
 
   const openWhatsApp = (volunteer) => {
@@ -1210,6 +1369,21 @@ export default function MapAdmin() {
                           style={deleteBtn}
                         >
                           <Trash2 size={15} />{ui.delete}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => downloadVolunteerCard(vol)}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '6px',
+                            padding: '9px 14px', borderRadius: '12px',
+                            border: '1px solid rgba(16,185,129,0.25)',
+                            background: 'rgba(16,185,129,0.07)', color: 'var(--emerald-700)',
+                            fontWeight: 700, cursor: 'pointer', fontSize: '0.88rem',
+                          }}
+                        >
+                          <Download size={15} />
+                          {lang === 'ar' ? 'تحميل البطاقة' : lang === 'fr' ? 'Télécharger la carte' : 'Download Card'}
                         </button>
                       </div>
                     </article>
