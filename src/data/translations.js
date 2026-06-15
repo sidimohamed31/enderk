@@ -202,7 +202,7 @@ export const translations = {
     }
   },
   fr: {
-    title: "ONG ENDEREK Environnementale",
+    title: "ONG ENDERK Environnementale",
     slogan: "Ensemble pour un environnement durable et un développement prospère pour les générations futures",
     nav: {
       home: "Accueil",
@@ -240,7 +240,7 @@ export const translations = {
     },
     about: {
       title: "Qui sommes-nous ?",
-      text1: "L'ONG ENDEREK Environnementale est une organisation mauritanienne indépendante et à but non lucratif, engagée pour la protection de l'environnement, la gestion des ressources naturelles et le développement durable.",
+      text1: "L'ONG ENDERK Environnementale est une organisation mauritanienne indépendante et à but non lucratif, engagée pour la protection de l'environnement, la gestion des ressources naturelles et le développement durable.",
       text2: "Nous œuvrons pour renforcer la résilience des communautés face aux défis climatiques, économiques et sociaux à travers des programmes participatifs qui mettent l'humain au cœur du développement.",
       vision_title: "Notre Vision",
       vision_text: "Un environnement sain, des ressources naturelles préservées et des communautés prospères gérant leurs ressources de manière efficace et inclusive.",
@@ -330,7 +330,7 @@ export const translations = {
         success_title: "Merci pour votre engagement !",
         success_desc: "Votre demande a été enregistrée avec succès. Nous vous contacterons très prochainement.",
         card_title: "Carte de Bénévole Éco",
-        card_org: "ONG ENDEREK",
+        card_org: "ONG ENDERK",
         card_status: "Demande en cours d'examen"
       }
     },
@@ -397,10 +397,10 @@ export const translations = {
       loadError: 'Impossible de charger les actualités.',
     },
     footer: {
-      about_title: "ONG ENDEREK",
+      about_title: "ONG ENDERK",
       about_desc: "Une organisation mauritanienne indépendante unissant protection de l'environnement et développement social.",
       links_title: "Liens rapides",
-      rights: "Tous droits réservés © 2026 ONG ENDEREK."
+      rights: "Tous droits réservés © 2026 ONG ENDERK."
     }
   },
   en: {
