@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Calendar, CheckCircle, Film, Image as ImageIcon, Info, MapPin, X } from 'lucide-react';
 import { fetchProjects, peekProjectsCache } from '../lib/projectsApi';
 import { getRegionLabel, groupProjectsByRegion } from '../data/projectsData';
@@ -21,6 +21,20 @@ function formatProjectDate(value, lang) {
     month: 'short',
     day: 'numeric',
   }).format(parsed);
+}
+
+// Tracks a media query so we can render a different layout on phones
+function useIsMobile(query = '(max-width: 768px)') {
+  const [matches, setMatches] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(query).matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const onChange = (event) => setMatches(event.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, [query]);
+  return matches;
 }
 
 export default function ProjectMap({ t, lang }) {
@@ -79,6 +93,185 @@ export default function ProjectMap({ t, lang }) {
   const selectProject = (project) => {
     setSelectedProjectId(project.id);
     setActiveMedia(null);
+  };
+
+  const isMobile = useIsMobile();
+
+  // Detail card for the currently selected project — reused on desktop (side
+  // column) and on mobile (rendered inline directly under the chosen card).
+  const renderDetail = () => {
+    if (!selectedProject) return null;
+    return (
+      <div
+        className="glass-panel animate-fade-in"
+        style={{
+          padding: '32px',
+          borderRadius: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '18px',
+          borderColor: 'var(--emerald-500)',
+          position: 'relative',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setSelectedProjectId(null)}
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: lang === 'ar' ? 'auto' : '16px',
+            left: lang === 'ar' ? '16px' : 'auto',
+            background: 'rgba(249,250,251,0.8)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '50%',
+            width: '32px',
+            height: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-soft)',
+          }}
+        >
+          <X size={16} />
+        </button>
+
+        <div>
+          <span
+            style={{
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              color: 'var(--emerald-500)',
+              letterSpacing: '1px',
+            }}
+          >
+            {getRegionLabel(selectedProject.regionId, lang)} • {localize(selectedProject, 'category', lang)}
+          </span>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '6px' }}>{localize(selectedProject, 'title', lang)}</h3>
+          {selectedProject.projectDate && (
+            <p
+              style={{
+                marginTop: '8px',
+                color: 'var(--text-secondary)',
+                fontSize: '0.88rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <Calendar size={14} />
+              {lang === 'ar'
+                ? `تاريخ المشروع: ${formatProjectDate(selectedProject.projectDate, lang)}`
+                : lang === 'fr'
+                  ? `Date du projet: ${formatProjectDate(selectedProject.projectDate, lang)}`
+                  : `Project date: ${formatProjectDate(selectedProject.projectDate, lang)}`}
+            </p>
+          )}
+        </div>
+
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.7 }}>{localize(selectedProject, 'description', lang)}</p>
+
+        <div
+          style={{
+            padding: '14px',
+            borderRadius: '12px',
+            background: 'rgba(22, 160, 133, 0.06)',
+            border: '1px dashed rgba(22, 160, 133, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <CheckCircle size={18} style={{ color: 'var(--emerald-500)', flexShrink: 0 }} />
+          <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>
+            <strong>{t.map_section.impact_label}</strong>
+            {localize(selectedProject, 'impact', lang)}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setActiveMedia(activeMedia === 'video' ? null : 'video')}
+            className="btn-primary"
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.88rem', padding: '11px' }}
+          >
+            <Film size={15} />
+            {lang === 'ar' ? 'شاهد الفيديو' : lang === 'fr' ? 'Voir la vidéo' : 'Watch Video'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveMedia(activeMedia === 'photos' ? null : 'photos')}
+            className="btn-secondary"
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.88rem', padding: '9px', color: 'var(--text-primary)' }}
+          >
+            <ImageIcon size={15} />
+            {lang === 'ar' ? 'معرض الصور' : lang === 'fr' ? 'Photos' : 'Photos'}
+          </button>
+        </div>
+
+        {activeMedia && (
+          <div
+            className="animate-fade-in"
+            style={{
+              background: 'rgba(240, 253, 248, 0.9)',
+              borderRadius: '14px',
+              padding: '16px',
+              border: '1px solid rgba(16,185,129,0.15)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>
+                {activeMedia === 'video' ? t.map_section.video_title : t.map_section.images_title}
+              </span>
+              <button type="button" onClick={() => setActiveMedia(null)} style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <X size={13} />
+              </button>
+            </div>
+
+            {activeMedia === 'video' ? (
+              selectedProject.videoUrl ? (
+                <div style={{ borderRadius: '10px', overflow: 'hidden', position: 'relative', paddingTop: '56.25%', background: '#000' }}>
+                  <video
+                    src={selectedProject.videoUrl}
+                    controls
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                  />
+                </div>
+              ) : (
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t.map_section.no_video}</div>
+              )
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+                {selectedProject.images.length > 0 ? (
+                  selectedProject.images.map((img, idx) => (
+                    <div key={`${selectedProject.id}-${idx}`} style={{ borderRadius: '8px', overflow: 'hidden', height: '110px', cursor: 'zoom-in' }}>
+                      <img
+                        src={img}
+                        alt={`${localize(selectedProject, 'title', lang)}-${idx}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
+                        onClick={() => window.open(img, '_blank')}
+                        onMouseEnter={(event) => {
+                          event.currentTarget.style.transform = 'scale(1.08)';
+                        }}
+                        onMouseLeave={(event) => {
+                          event.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t.map_section.images_title}</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -188,8 +381,8 @@ export default function ProjectMap({ t, lang }) {
                 {projects.map((project) => {
                   const isActive = selectedProject?.id === project.id;
                   return (
+                    <Fragment key={project.id}>
                     <button
-                      key={project.id}
                       type="button"
                       onClick={() => selectProject(project)}
                       style={{
@@ -201,6 +394,7 @@ export default function ProjectMap({ t, lang }) {
                         boxShadow: isActive ? 'var(--shadow-glow)' : 'var(--shadow-soft)',
                         cursor: 'pointer',
                         transition: 'var(--transition-smooth)',
+                        width: '100%',
                       }}
                     >
                       <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
@@ -286,6 +480,8 @@ export default function ProjectMap({ t, lang }) {
                         </div>
                       </div>
                     </button>
+                    {isMobile && isActive && renderDetail()}
+                    </Fragment>
                   );
                 })}
               </div>
@@ -386,176 +582,8 @@ export default function ProjectMap({ t, lang }) {
                 </svg>
               </div>
 
-              {selectedProject ? (
-                <div
-                  className="glass-panel animate-fade-in"
-                  style={{
-                    padding: '32px',
-                    borderRadius: '24px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '18px',
-                    borderColor: 'var(--emerald-500)',
-                    position: 'relative',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedProjectId(null)}
-                    style={{
-                      position: 'absolute',
-                      top: '16px',
-                      right: lang === 'ar' ? 'auto' : '16px',
-                      left: lang === 'ar' ? '16px' : 'auto',
-                      background: 'rgba(249,250,251,0.8)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '50%',
-                      width: '32px',
-                      height: '32px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--text-secondary)',
-                      cursor: 'pointer',
-                      boxShadow: 'var(--shadow-soft)',
-                    }}
-                  >
-                    <X size={16} />
-                  </button>
-
-                  <div>
-                    <span
-                      style={{
-                        fontSize: '0.78rem',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        color: 'var(--emerald-500)',
-                        letterSpacing: '1px',
-                      }}
-                    >
-                      {getRegionLabel(selectedProject.regionId, lang)} • {localize(selectedProject, 'category', lang)}
-                    </span>
-                    <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '6px' }}>{localize(selectedProject, 'title', lang)}</h3>
-                    {selectedProject.projectDate && (
-                      <p
-                        style={{
-                          marginTop: '8px',
-                          color: 'var(--text-secondary)',
-                          fontSize: '0.88rem',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                        }}
-                      >
-                        <Calendar size={14} />
-                        {lang === 'ar'
-                          ? `تاريخ المشروع: ${formatProjectDate(selectedProject.projectDate, lang)}`
-                          : lang === 'fr'
-                            ? `Date du projet: ${formatProjectDate(selectedProject.projectDate, lang)}`
-                            : `Project date: ${formatProjectDate(selectedProject.projectDate, lang)}`}
-                      </p>
-                    )}
-                  </div>
-
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.7 }}>{localize(selectedProject, 'description', lang)}</p>
-
-                  <div
-                    style={{
-                      padding: '14px',
-                      borderRadius: '12px',
-                      background: 'rgba(22, 160, 133, 0.06)',
-                      border: '1px dashed rgba(22, 160, 133, 0.25)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                    }}
-                  >
-                    <CheckCircle size={18} style={{ color: 'var(--emerald-500)', flexShrink: 0 }} />
-                    <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>
-                      <strong>{t.map_section.impact_label}</strong>
-                      {localize(selectedProject, 'impact', lang)}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => setActiveMedia(activeMedia === 'video' ? null : 'video')}
-                      className="btn-primary"
-                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.88rem', padding: '11px' }}
-                    >
-                      <Film size={15} />
-                      {lang === 'ar' ? 'شاهد الفيديو' : lang === 'fr' ? 'Voir la vidéo' : 'Watch Video'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveMedia(activeMedia === 'photos' ? null : 'photos')}
-                      className="btn-secondary"
-                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.88rem', padding: '9px', color: 'var(--text-primary)' }}
-                    >
-                      <ImageIcon size={15} />
-                      {lang === 'ar' ? 'معرض الصور' : lang === 'fr' ? 'Photos' : 'Photos'}
-                    </button>
-                  </div>
-
-                  {activeMedia && (
-                    <div
-                      className="animate-fade-in"
-                      style={{
-                        background: 'rgba(240, 253, 248, 0.9)',
-                        borderRadius: '14px',
-                        padding: '16px',
-                        border: '1px solid rgba(16,185,129,0.15)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>
-                          {activeMedia === 'video' ? t.map_section.video_title : t.map_section.images_title}
-                        </span>
-                        <button type="button" onClick={() => setActiveMedia(null)} style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                          <X size={13} />
-                        </button>
-                      </div>
-
-                      {activeMedia === 'video' ? (
-                        selectedProject.videoUrl ? (
-                          <div style={{ borderRadius: '10px', overflow: 'hidden', position: 'relative', paddingTop: '56.25%', background: '#000' }}>
-                            <video
-                              src={selectedProject.videoUrl}
-                              controls
-                              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                            />
-                          </div>
-                        ) : (
-                          <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t.map_section.no_video}</div>
-                        )
-                      ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
-                          {selectedProject.images.length > 0 ? (
-                            selectedProject.images.map((img, idx) => (
-                              <div key={`${selectedProject.id}-${idx}`} style={{ borderRadius: '8px', overflow: 'hidden', height: '110px', cursor: 'zoom-in' }}>
-                                <img
-                                  src={img}
-                                  alt={`${localize(selectedProject, 'title', lang)}-${idx}`}
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
-                                  onClick={() => window.open(img, '_blank')}
-                                  onMouseEnter={(event) => {
-                                    event.currentTarget.style.transform = 'scale(1.08)';
-                                  }}
-                                  onMouseLeave={(event) => {
-                                    event.currentTarget.style.transform = 'scale(1)';
-                                  }}
-                                />
-                              </div>
-                            ))
-                          ) : (
-                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t.map_section.images_title}</div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+              {!isMobile && (selectedProject ? (
+                renderDetail()
               ) : (
                 <div
                   className="glass-panel"
@@ -598,7 +626,7 @@ export default function ProjectMap({ t, lang }) {
                     </p>
                   </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         )}

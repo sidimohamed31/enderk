@@ -758,7 +758,7 @@ export default function MapAdmin() {
       <div className="container">
 
         {/* Header */}
-        <div style={{
+        <div className="admin-header" style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           gap: '16px', marginBottom: '24px', flexWrap: 'wrap',
         }}>
@@ -770,7 +770,7 @@ export default function MapAdmin() {
             <p style={{ color: 'var(--text-secondary)', marginTop: '8px', maxWidth: '720px' }}>{ui.subtitle}</p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="admin-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               <Globe size={16} color="var(--emerald-700)" />
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{ui.langLabel}</span>
@@ -824,7 +824,7 @@ export default function MapAdmin() {
         </div>
 
         {/* Tab switcher */}
-        <div style={{
+        <div className="admin-tabs" style={{
           display: 'inline-flex', gap: '4px', padding: '5px',
           background: 'rgba(16,185,129,0.07)', borderRadius: '16px',
           marginBottom: '24px',
@@ -854,7 +854,7 @@ export default function MapAdmin() {
 
         {/* ── PROJECTS TAB ───────────────────────────────────────────────────── */}
         {activeTab === 'projects' && (
-          <div style={{
+          <div className="admin-grid" style={{
             display: 'grid',
             gridTemplateColumns: 'minmax(320px, 1.15fr) minmax(280px, 0.85fr)',
             gap: '24px', alignItems: 'start',
@@ -883,7 +883,7 @@ export default function MapAdmin() {
                     placeholder={ui.titlePlaceholder} />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="dual" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
                     <label className="form-label">{ui.regionLabel}</label>
                     <select className="form-control" value={form.regionId}
@@ -1061,7 +1061,7 @@ export default function MapAdmin() {
 
         {/* ── NEWS TAB ───────────────────────────────────────────────────────── */}
         {activeTab === 'news' && (
-          <div style={{
+          <div className="admin-grid" style={{
             display: 'grid',
             gridTemplateColumns: 'minmax(320px, 1.15fr) minmax(280px, 0.85fr)',
             gap: '24px', alignItems: 'start',
@@ -1090,7 +1090,7 @@ export default function MapAdmin() {
                     placeholder={ui.newsTitlePlaceholder} />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="dual" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
                     <label className="form-label">{ui.newsCategoryLabel}</label>
                     <input className="form-control" value={newsForm.category}
@@ -1247,7 +1247,7 @@ export default function MapAdmin() {
                 {ui.volunteersEmpty}
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
+              <div className="admin-vol-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
                 {volunteers.map((vol) => {
                   const isContacted = vol.status === 'contacted';
                   const initials = vol.name.trim().split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
