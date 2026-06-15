@@ -557,21 +557,39 @@ def delete_volunteer(db: Session, application: models.VolunteerApplication) -> N
 # ── Background translation tasks ──────────────────────────────────────────────
 
 def _bg_translate_project(session_factory, project_id: str) -> None:
+    import time
     from .translation import translate_text
+
     db = session_factory()
     try:
         proj = db.query(models.Project).filter(models.Project.id == project_id).first()
         if not proj:
             return
-        proj.title_fr = translate_text(proj.title, "fr")
-        proj.title_en = translate_text(proj.title, "en")
-        proj.description_fr = translate_text(proj.description, "fr")
-        proj.description_en = translate_text(proj.description, "en")
-        proj.impact_fr = translate_text(proj.impact, "fr")
-        proj.impact_en = translate_text(proj.impact, "en")
-        proj.category_fr = translate_text(proj.category, "fr")
-        proj.category_en = translate_text(proj.category, "en")
-        db.commit()
+
+        changed = False
+
+        def _set(field: str, src: str | None, target: str) -> None:
+            nonlocal changed
+            if not src or not src.strip():
+                return
+            result = translate_text(src, target)
+            # Only store if translation actually differs from the original Arabic
+            if result and result.strip() != src.strip():
+                setattr(proj, field, result)
+                changed = True
+            time.sleep(0.3)
+
+        _set("title_fr", proj.title, "fr")
+        _set("title_en", proj.title, "en")
+        _set("description_fr", proj.description, "fr")
+        _set("description_en", proj.description, "en")
+        _set("impact_fr", proj.impact, "fr")
+        _set("impact_en", proj.impact, "en")
+        _set("category_fr", proj.category, "fr")
+        _set("category_en", proj.category, "en")
+
+        if changed:
+            db.commit()
     except Exception:
         db.rollback()
     finally:
@@ -595,21 +613,38 @@ def _bg_retranslate_all(session_factory) -> None:
 
 
 def _bg_translate_news(session_factory, article_id: str) -> None:
+    import time
     from .translation import translate_text
+
     db = session_factory()
     try:
         art = db.query(models.NewsArticle).filter(models.NewsArticle.id == article_id).first()
         if not art:
             return
-        art.title_fr = translate_text(art.title, "fr")
-        art.title_en = translate_text(art.title, "en")
-        art.excerpt_fr = translate_text(art.excerpt, "fr")
-        art.excerpt_en = translate_text(art.excerpt, "en")
-        art.body_fr = translate_text(art.body, "fr")
-        art.body_en = translate_text(art.body, "en")
-        art.category_fr = translate_text(art.category, "fr")
-        art.category_en = translate_text(art.category, "en")
-        db.commit()
+
+        changed = False
+
+        def _set(field: str, src: str | None, target: str) -> None:
+            nonlocal changed
+            if not src or not src.strip():
+                return
+            result = translate_text(src, target)
+            if result and result.strip() != src.strip():
+                setattr(art, field, result)
+                changed = True
+            time.sleep(0.3)
+
+        _set("title_fr", art.title, "fr")
+        _set("title_en", art.title, "en")
+        _set("excerpt_fr", art.excerpt, "fr")
+        _set("excerpt_en", art.excerpt, "en")
+        _set("body_fr", art.body, "fr")
+        _set("body_en", art.body, "en")
+        _set("category_fr", art.category, "fr")
+        _set("category_en", art.category, "en")
+
+        if changed:
+            db.commit()
     except Exception:
         db.rollback()
     finally:

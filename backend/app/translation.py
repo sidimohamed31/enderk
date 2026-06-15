@@ -1,26 +1,33 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 import urllib.parse
 import urllib.request
 
-# MyMemory free tier hard limit is 500 chars per API call
+# MyMemory free tier: 500 chars/request, ~100 words/day per IP without email,
+# 10,000 words/day with a registered email (TRANSLATION_EMAIL env var).
 MAX_CHARS = 490
 
 
 def _call_mymemory(text: str, source: str, target: str) -> str:
-    params = urllib.parse.urlencode({"q": text, "langpair": f"{source}|{target}"})
-    url = f"https://api.mymemory.translated.net/get?{params}"
+    email = os.environ.get("TRANSLATION_EMAIL", "")
+    params: dict = {"q": text, "langpair": f"{source}|{target}"}
+    if email:
+        params["de"] = email
+    url = f"https://api.mymemory.translated.net/get?{urllib.parse.urlencode(params)}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            # Non-200 status means API error — do not store the error message
+            # Quota exhausted — don't store original as translation
+            if data.get("quotaFinished"):
+                return text
+            # Non-200 status is an API error
             if data.get("responseStatus", 200) != 200:
                 return text
             translated = data.get("responseData", {}).get("translatedText", "")
-            # Extra guard: API sometimes returns the error string even with 200
             if not translated or "QUERY LENGTH LIMIT" in translated:
                 return text
             return translated
@@ -29,11 +36,6 @@ def _call_mymemory(text: str, source: str, target: str) -> str:
 
 
 def _split_to_chunks(text: str) -> list[str]:
-    """Split text into chunks of at most MAX_CHARS characters.
-
-    Tries paragraph boundaries first, then sentence boundaries, then hard-cuts
-    so that no individual chunk ever exceeds the API limit.
-    """
     if len(text) <= MAX_CHARS:
         return [text]
 
@@ -47,7 +49,6 @@ def _split_to_chunks(text: str) -> list[str]:
                 if buf:
                     chunks.append(buf)
                     time.sleep(0.1)
-                # sentence itself may be > MAX_CHARS — hard-cut it
                 while len(s) > MAX_CHARS:
                     chunks.append(s[:MAX_CHARS])
                     s = s[MAX_CHARS:]
@@ -65,11 +66,9 @@ def _split_to_chunks(text: str) -> list[str]:
             continue
         candidate = ("\n\n".join(sentence_buf) + "\n\n" + para).strip() if sentence_buf else para
         if len(candidate) > MAX_CHARS:
-            # flush what we have, then start fresh with this paragraph
             if sentence_buf:
                 _flush_sentences(sentence_buf)
                 sentence_buf = []
-            # break the paragraph into sentences
             import re
             sentences = re.split(r'(?<=[.!?؟])\s+', para)
             sentence_buf.extend(sentences)

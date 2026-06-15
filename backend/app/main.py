@@ -186,6 +186,20 @@ def update_project_endpoint(
     return result
 
 
+@project_router.get("/admin/test-translation")
+def admin_test_translation(text: str = "مرحبا", target: str = "fr"):
+    import os
+    from .translation import translate_text
+    result = translate_text(text, target)
+    return {
+        "original": text,
+        "translated": result,
+        "target": target,
+        "success": result != text,
+        "email_configured": bool(os.environ.get("TRANSLATION_EMAIL")),
+    }
+
+
 @project_router.post("/admin/retranslate", status_code=202)
 def admin_retranslate_endpoint(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     from . import models as _models
