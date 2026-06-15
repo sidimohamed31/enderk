@@ -6,12 +6,36 @@ import time
 import urllib.parse
 import urllib.request
 
-# MyMemory free tier: 500 chars/request, ~100 words/day per IP without email,
-# 10,000 words/day with a registered email (TRANSLATION_EMAIL env var).
+# MyMemory free tier: 500 chars/request. TRANSLATION_EMAIL gives 10k words/day.
+# Google unofficial API is used as primary — no key, works from server IPs.
 MAX_CHARS = 490
 
 
+def _call_google(text: str, source: str, target: str) -> str:
+    """Google Translate unofficial endpoint — no auth, works from server IPs."""
+    params = urllib.parse.urlencode({
+        "client": "gtx",
+        "sl": source,
+        "tl": target,
+        "dt": "t",
+        "q": text,
+    })
+    url = f"https://translate.googleapis.com/translate_a/single?{params}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            # data[0] is a list of [translated_chunk, original_chunk, ...]
+            translated = "".join(chunk[0] for chunk in data[0] if chunk and chunk[0])
+            if translated and translated.strip() != text.strip():
+                return translated
+    except Exception:
+        pass
+    return text
+
+
 def _call_mymemory(text: str, source: str, target: str) -> str:
+    """MyMemory fallback — needs TRANSLATION_EMAIL env var for decent quota."""
     email = os.environ.get("TRANSLATION_EMAIL", "")
     params: dict = {"q": text, "langpair": f"{source}|{target}"}
     if email:
@@ -21,10 +45,8 @@ def _call_mymemory(text: str, source: str, target: str) -> str:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            # Quota exhausted — don't store original as translation
             if data.get("quotaFinished"):
                 return text
-            # Non-200 status is an API error
             if data.get("responseStatus", 200) != 200:
                 return text
             translated = data.get("responseData", {}).get("translatedText", "")
@@ -33,6 +55,14 @@ def _call_mymemory(text: str, source: str, target: str) -> str:
             return translated
     except Exception:
         return text
+
+
+def _call_api(text: str, source: str, target: str) -> str:
+    """Try Google first, fall back to MyMemory."""
+    result = _call_google(text, source, target)
+    if result != text:
+        return result
+    return _call_mymemory(text, source, target)
 
 
 def _split_to_chunks(text: str) -> list[str]:
@@ -86,10 +116,10 @@ def translate_text(text: str, target: str, source: str = "ar") -> str:
         return text
     chunks = _split_to_chunks(text)
     if len(chunks) == 1:
-        return _call_mymemory(chunks[0], source, target)
+        return _call_api(chunks[0], source, target)
     translated: list[str] = []
     for i, chunk in enumerate(chunks):
-        translated.append(_call_mymemory(chunk, source, target))
+        translated.append(_call_api(chunk, source, target))
         if i < len(chunks) - 1:
             time.sleep(0.4)
     return " ".join(translated)

@@ -188,15 +188,48 @@ def update_project_endpoint(
 
 @project_router.get("/admin/test-translation")
 def admin_test_translation(text: str = "مرحبا", target: str = "fr"):
-    import os
+    import json, os, urllib.parse, urllib.request
+
+    def _test_google():
+        params = urllib.parse.urlencode({"client": "gtx", "sl": "ar", "tl": target, "dt": "t", "q": text})
+        url = f"https://translate.googleapis.com/translate_a/single?{params}"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                translated = "".join(c[0] for c in data[0] if c and c[0])
+                return {"ok": translated != text, "result": translated}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def _test_mymemory():
+        email = os.environ.get("TRANSLATION_EMAIL", "")
+        params: dict = {"q": text, "langpair": f"ar|{target}"}
+        if email:
+            params["de"] = email
+        url = f"https://api.mymemory.translated.net/get?{urllib.parse.urlencode(params)}"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                return {
+                    "ok": data.get("responseStatus") == 200 and not data.get("quotaFinished"),
+                    "responseStatus": data.get("responseStatus"),
+                    "quotaFinished": data.get("quotaFinished"),
+                    "result": data.get("responseData", {}).get("translatedText"),
+                    "email_configured": bool(email),
+                }
+        except Exception as e:
+            return {"ok": False, "error": str(e), "email_configured": bool(email)}
+
     from .translation import translate_text
-    result = translate_text(text, target)
+    final = translate_text(text, target)
     return {
-        "original": text,
-        "translated": result,
-        "target": target,
-        "success": result != text,
-        "email_configured": bool(os.environ.get("TRANSLATION_EMAIL")),
+        "text": text,
+        "final_translation": final,
+        "success": final != text,
+        "google": _test_google(),
+        "mymemory": _test_mymemory(),
     }
 
 
