@@ -18,6 +18,147 @@ export default function VolunteerForm({ t, lang }) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
+  const downloadCard = () => {
+    const W = 520, H = 330, S = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = W * S;
+    canvas.height = H * S;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(S, S);
+
+    const rRect = (x, y, w, h, r) => {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.arcTo(x + w, y, x + w, y + r, r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+      ctx.lineTo(x + r, y + h);
+      ctx.arcTo(x, y + h, x, y + h - r, r);
+      ctx.lineTo(x, y + r);
+      ctx.arcTo(x, y, x + r, y, r);
+      ctx.closePath();
+    };
+
+    const render = (logo) => {
+      // Background
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, '#0f2233');
+      bg.addColorStop(1, '#0a1628');
+      ctx.fillStyle = bg;
+      rRect(0, 0, W, H, 20);
+      ctx.fill();
+
+      // Overlay tint
+      const tint = ctx.createLinearGradient(0, 0, W * 0.6, H);
+      tint.addColorStop(0, 'rgba(22,160,133,0.10)');
+      tint.addColorStop(1, 'rgba(15,76,129,0.10)');
+      ctx.fillStyle = tint;
+      rRect(2, 2, W - 4, H - 4, 18);
+      ctx.fill();
+
+      // Green border
+      ctx.strokeStyle = '#16a085';
+      ctx.lineWidth = 2;
+      rRect(1, 1, W - 2, H - 2, 19);
+      ctx.stroke();
+
+      // Logo
+      if (logo) ctx.drawImage(logo, 30, 30, 28, 28);
+
+      // Org name
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText('ENDERK', 66, 46);
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.font = '9px sans-serif';
+      ctx.fillText('ENVIRONMENTAL NGO', 66, 60);
+
+      // Status badge
+      const badgeLabel = lang === 'ar' ? 'متطوع رسمي' : 'Active Volunteer';
+      const badgeW = 122, badgeH = 24, badgeX = W - badgeW - 28;
+      ctx.fillStyle = 'rgba(0,230,153,0.15)';
+      rRect(badgeX, 31, badgeW, badgeH, 8);
+      ctx.fill();
+      ctx.strokeStyle = '#00e699';
+      ctx.lineWidth = 1;
+      rRect(badgeX, 31, badgeW, badgeH, 8);
+      ctx.stroke();
+      ctx.fillStyle = '#00e699';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(badgeLabel, badgeX + badgeW / 2, 47);
+      ctx.textAlign = 'left';
+
+      // Header divider
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(30, 82); ctx.lineTo(W - 30, 82); ctx.stroke();
+
+      // Avatar box
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      rRect(30, 100, 68, 68, 14);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.lineWidth = 1;
+      rRect(30, 100, 68, 68, 14);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.beginPath(); ctx.arc(64, 122, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(64, 160, 18, 11, 0, Math.PI, Math.PI * 2); ctx.fill();
+
+      // Name
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText(form.name || (lang === 'ar' ? 'الاسم الكامل' : 'Full Name'), 116, 130);
+
+      // Interest
+      ctx.fillStyle = '#16a085';
+      ctx.font = '13px sans-serif';
+      ctx.fillText(form.interest || (lang === 'ar' ? 'مجال التدخل' : 'Intervention Area'), 116, 152);
+
+      // Footer divider
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(30, 198); ctx.lineTo(W - 30, 198); ctx.stroke();
+
+      // Volunteer ID
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = '8px sans-serif';
+      ctx.fillText('VOLUNTEER ID', 30, 222);
+      ctx.fillStyle = '#e0e0e0';
+      ctx.font = 'bold 14px monospace';
+      ctx.fillText(`ED-${(form.phone || '0000').slice(-4)}-2026`, 30, 242);
+
+      // Location
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('LOCATION', W - 30, 222);
+      ctx.fillStyle = '#e0e0e0';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText(form.region || 'Mauritania', W - 30, 242);
+      ctx.textAlign = 'left';
+
+      // Website
+      ctx.fillStyle = 'rgba(22,160,133,0.7)';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('www.enderek.org', W / 2, 290);
+
+      // Trigger download
+      const link = document.createElement('a');
+      link.download = `volunteer-card-${(form.name || 'volunteer').replace(/\s+/g, '-')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+
+    const img = new Image();
+    img.onload = () => render(img);
+    img.onerror = () => render(null);
+    img.src = logoImg;
+  };
+
   const validate = () => {
     let tempErrors = {};
     if (!form.name.trim()) tempErrors.name = lang === 'ar' ? 'الاسم مطلوب' : 'Name is required';
@@ -423,7 +564,7 @@ export default function VolunteerForm({ t, lang }) {
                 opacity: isSuccess ? 1 : 0.5,
                 cursor: isSuccess ? 'pointer' : 'not-allowed'
               }}
-              onClick={() => alert(lang === 'ar' ? 'جاري تحميل بطاقة المتطوع الرقمية...' : 'Downloading digital volunteer card...')}
+              onClick={downloadCard}
             >
               <Download size={16} />
               <span>{lang === 'ar' ? 'تحميل بطاقة المتطوع الرقمية' : 'Download Digital Volunteer Card'}</span>

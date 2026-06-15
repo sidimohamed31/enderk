@@ -131,65 +131,30 @@ export default function Contact({ t, lang }) {
                       {t.contact.phone_label}
                     </span>
                     <p style={{ fontSize: '1rem', fontWeight: 700, marginTop: '2px', direction: 'ltr', textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                      +222 45 25 10 10
+                      +222 31 44 80 80
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Stylized custom vector map box */}
+            {/* Google Maps embed */}
             <div className="glass-panel" style={{
               height: '220px',
               borderRadius: '20px',
               overflow: 'hidden',
-              position: 'relative',
-              background: 'linear-gradient(135deg, rgba(22, 160, 133, 0.15), rgba(41, 128, 185, 0.15))',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              position: 'relative'
             }}>
-              {/* Radial scan lines representing a stylish vector map HUD */}
-              <div style={{
-                position: 'absolute',
-                width: '130%',
-                height: '130%',
-                backgroundImage: 'radial-gradient(circle, transparent 35%, rgba(0,0,0,0.4) 75%), repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 10px), repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 10px)',
-                pointerEvents: 'none'
-              }} />
-
-              {/* Glowing pin mark */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', zIndex: 10 }}>
-                <div style={{
-                  position: 'relative',
-                  width: '40px',
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <div className="animate-pulse-ring" style={{
-                    position: 'absolute',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    background: 'var(--emerald-500)',
-                    opacity: 0.5
-                  }} />
-                  <MapPin size={28} style={{ color: '#ffffff', fill: 'var(--emerald-600)', position: 'relative', zIndex: 5 }} />
-                </div>
-                <span style={{
-                  background: 'var(--bg-surface)',
-                  padding: '6px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid var(--border-color)',
-                  fontWeight: 700,
-                  fontSize: '0.82rem',
-                  boxShadow: 'var(--shadow-premium)'
-                }}>
-                  {lang === 'ar' ? 'مقر منظمة انديرك' : 'ENDERK Headquarters'}
-                </span>
-              </div>
+              <iframe
+                title="ENDERK Location"
+                src="https://www.google.com/maps?q=18.1075931,-15.9731837&z=16&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0, display: 'block' }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </div>
 
