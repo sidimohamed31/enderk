@@ -11,9 +11,16 @@ import VolunteerForm from './components/VolunteerForm';
 import DonatePortal from './components/DonatePortal';
 import Contact from './components/Contact';
 import MapAdmin from './components/MapAdmin';
+import AdminLogin from './components/AdminLogin';
 import NewsDetail from './components/NewsDetail';
 import { getApiBaseUrl } from './lib/projectsApi';
 import { translations } from './data/translations';
+
+function ProtectedAdmin() {
+  const [authed, setAuthed] = useState(() => sessionStorage.getItem('admin_auth') === '1');
+  if (!authed) return <AdminLogin onSuccess={() => setAuthed(true)} />;
+  return <MapAdmin />;
+}
 
 function App() {
   const [lang, setLang] = useState('ar');
@@ -37,7 +44,7 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/admin" element={<MapAdmin />} />
+      <Route path="/admin" element={<ProtectedAdmin />} />
       <Route element={<Layout lang={lang} setLang={setLang} t={t} />}>
         <Route path="/" element={<><Hero t={t} lang={lang} /><StatsSection t={t} lang={lang} /><NewsSection t={t} lang={lang} /></>} />
         <Route path="/news/:id" element={<NewsDetail t={t} lang={lang} />} />
