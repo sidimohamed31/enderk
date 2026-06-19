@@ -202,7 +202,7 @@ export const translations = {
     }
   },
   fr: {
-    title: "ONG ENDERK Environnementale",
+    title: "ONG ENDEREK Environnementale",
     slogan: "Ensemble pour un environnement durable et un développement prospère pour les générations futures",
     nav: {
       home: "Accueil",
@@ -240,7 +240,7 @@ export const translations = {
     },
     about: {
       title: "Qui sommes-nous ?",
-      text1: "L'ONG ENDERK Environnementale est une organisation mauritanienne indépendante et à but non lucratif, engagée pour la protection de l'environnement, la gestion des ressources naturelles et le développement durable.",
+      text1: "L'ONG ENDEREK Environnementale est une organisation mauritanienne indépendante et à but non lucratif, engagée pour la protection de l'environnement, la gestion des ressources naturelles et le développement durable.",
       text2: "Nous œuvrons pour renforcer la résilience des communautés face aux défis climatiques, économiques et sociaux à travers des programmes participatifs qui mettent l'humain au cœur du développement.",
       vision_title: "Notre Vision",
       vision_text: "Un environnement sain, des ressources naturelles préservées et des communautés prospères gérant leurs ressources de manière efficace et inclusive.",
@@ -330,7 +330,7 @@ export const translations = {
         success_title: "Merci pour votre engagement !",
         success_desc: "Votre demande a été enregistrée avec succès. Nous vous contacterons très prochainement.",
         card_title: "Carte de Bénévole Éco",
-        card_org: "ONG ENDERK",
+        card_org: "ONG ENDEREK",
         card_status: "Demande en cours d'examen"
       }
     },
@@ -397,14 +397,14 @@ export const translations = {
       loadError: 'Impossible de charger les actualités.',
     },
     footer: {
-      about_title: "ONG ENDERK",
+      about_title: "ONG ENDEREK",
       about_desc: "Une organisation mauritanienne indépendante unissant protection de l'environnement et développement social.",
       links_title: "Liens rapides",
-      rights: "Tous droits réservés © 2026 ONG ENDERK."
+      rights: "Tous droits réservés © 2026 ONG ENDEREK."
     }
   },
   en: {
-    title: "ENDERK Environmental NGO",
+    title: "ENDEREK Environmental NGO",
     slogan: "Together for a sustainable environment and prosperous development for future generations",
     nav: {
       home: "Home",
@@ -442,7 +442,7 @@ export const translations = {
     },
     about: {
       title: "Who We Are",
-      text1: "ENDERK Environmental NGO is an independent, non-profit Mauritanian non-governmental organization working to protect the environment, preserve natural resources, and support local community livelihoods.",
+      text1: "ENDEREK Environmental NGO is an independent, non-profit Mauritanian non-governmental organization working to protect the environment, preserve natural resources, and support local community livelihoods.",
       text2: "We strive to build resilient communities capable of facing climate, economic, and social challenges through sustainable programs that put humanity at the center of development.",
       vision_title: "Our Vision",
       vision_text: "A healthy environment, sustainable natural resources, and prosperous communities managing their assets efficiently and equitably for current and future generations.",
@@ -532,7 +532,7 @@ export const translations = {
         success_title: "Thank you for joining us!",
         success_desc: "Your volunteer application was successfully submitted. We will review it and reach out to you shortly.",
         card_title: "Eco Volunteer Card",
-        card_org: "ENDERK NGO",
+        card_org: "ENDEREK NGO",
         card_status: "Application under review"
       }
     },
@@ -599,10 +599,10 @@ export const translations = {
       loadError: 'Could not load news articles.',
     },
     footer: {
-      about_title: "ENDERK NGO",
+      about_title: "ENDEREK NGO",
       about_desc: "Independent, non-profit Mauritanian organization joining environmental protection and community development.",
       links_title: "Quick Links",
-      rights: "All rights reserved © 2026 ENDERK Environmental NGO."
+      rights: "All rights reserved © 2026 ENDEREK Environmental NGO."
     }
   }
 };
